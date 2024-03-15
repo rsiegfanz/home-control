@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	controller "github.com/rs/homecontrol/pkg/presentation/controllers"
+	"github.com/rs/homecontrol/pkg/presentation/controllers"
 	"github.com/rs/homecontrol/pkg/presentation/middleware"
 )
 
@@ -14,8 +14,8 @@ func NewServer() *http.Server {
 	router.Use(mux.CORSMethodMiddleware(router))
 	router.Use(middleware.LoggingMiddleware)
 
-	router.HandleFunc("/", controller.HelloWorldHandler)
-	router.HandleFunc("/rooms", controller.GetRoomsHandler)
+	router.HandleFunc("/", controllers.HelloWorldHandler)
+	router.HandleFunc("/rooms", controllers.GetRoomsHandler)
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:8080",
