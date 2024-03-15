@@ -1,0 +1,9 @@
+@use '@angular/material' as mat;
+
+@include mat.all-component-typographies();
+@include mat.core();
+
+$home-primary: mat.define-palette(mat.$blue-palette, 600);
+$home-accent: mat.define-palette(mat.$pink-palette, 600);
+$home-warn: mat.define-palette(mat.$red-palette, 600);
+
