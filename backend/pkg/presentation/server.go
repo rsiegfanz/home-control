@@ -15,7 +15,11 @@ func NewServer() *http.Server {
 	router.Use(middleware.LoggingMiddleware)
 
 	router.HandleFunc("/", controllers.HelloWorldHandler)
+
 	router.HandleFunc("/rooms", controllers.GetRoomsHandler)
+
+	router.HandleFunc("/rooms/{roomId}/temperatures", controllers.GetTemperaturesByRoomIdHandler)
+	router.HandleFunc("/rooms/{roomId}/temperatures/latest", controllers.GetLatestTemperatureByRoomIdHandler)
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:8080",

@@ -13,10 +13,10 @@ func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 	rooms := []presenter.RoomPresenter{
-		{"Büro"},
-		{"Wohnzimmer"},
-		{"Küche"},
-		{"Schlafzimmer"},
+		{1, "Büro"},
+		{2, "Wohnzimmer"},
+		{3, "Küche"},
+		{4, "Schlafzimmer"},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
