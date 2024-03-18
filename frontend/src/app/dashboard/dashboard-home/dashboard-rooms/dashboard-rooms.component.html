@@ -1,1 +1,4 @@
-<p>dashboard-rooms works!</p>
+@for (room of rooms; track room.id) {
+    <mat-card> {{ room.name }}</mat-card>
+}
+

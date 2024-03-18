@@ -7,7 +7,7 @@ import { AuthMode } from '../auth/auth-mode.enum';
 export const environment = {
     production: false,
     authMode: AuthMode.InMemory,
-    baseUrl: '',
+    baseUrl: 'http://127.0.0.1:8080/',
     firebase: {
         apiKey: '',
         authDomain: '',

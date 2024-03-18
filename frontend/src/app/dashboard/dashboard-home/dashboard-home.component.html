@@ -1,1 +1,9 @@
-<p>dashboard-home works!</p>
+<mat-card>
+    <mat-card-header>Temperaturen</mat-card-header>
+    @if (rooms$ | async; as rooms) {
+        <mat-card-content>
+            <app-dashboard-rooms [rooms]="rooms"></app-dashboard-rooms>
+        </mat-card-content>
+    }
+</mat-card>
+
