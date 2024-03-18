@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { commonTestingModules } from './common.testing';
 
 describe('AppComponent', () => {
     beforeEach(async () => {
         await TestBed.configureTestingModule({
-            imports: [AppComponent],
+            imports: [...commonTestingModules, AppComponent],
         }).compileComponents();
     });
 
@@ -27,3 +28,4 @@ describe('AppComponent', () => {
         expect(compiled.querySelector('h1')?.textContent).toContain('Hello, home-control');
     });
 });
+

@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FlexModule } from '@ngbracket/ngx-layout';
+import { AuthService } from '../auth/auth.service';
+import { combineLatest, filter, tap } from 'rxjs';
 
 @Component({
     selector: 'app-home',
@@ -10,7 +12,8 @@ import { FlexModule } from '@ngbracket/ngx-layout';
     template: `
         <div fxLayout="column" fxLayoutAlign="center center">
             <span class="mat-headline-3">Hausübersicht</span>
-            <button mat-raised-button color="primary" routerLink="/camera">Login</button>
+            <button mat-raised-button color="primary" (click)="login()">Login</button>
+            <button mat-raised-button color="primary" routerLink="/dashboard">Dashboard</button>
         </div>
     `,
     styles: `
@@ -19,5 +22,23 @@ import { FlexModule } from '@ngbracket/ngx-layout';
         }
     `,
 })
-export class HomeComponent {}
+export class HomeComponent {
+    constructor(
+        private authService: AuthService,
+        private router: Router,
+    ) {}
+
+    login(): void {
+        this.authService.login('rs.88.tech@gmail.com', 'x');
+
+        combineLatest([this.authService.authStatus$, this.authService.currentUser$])
+            .pipe(
+                filter(([authStatus, user]) => authStatus.isAuthenticated && user?._id !== ''),
+                tap(([authStatus, user]) => {
+                    this.router.navigate(['/dashboard']);
+                }),
+            )
+            .subscribe();
+    }
+}
 
