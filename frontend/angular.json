@@ -44,7 +44,7 @@
                             "src/safari-pinned-tab.svg",
                             "src/mstile-150x150.png"
                         ],
-                        "styles": ["@angular/material/prebuilt-themes/pink-bluegrey.css", "src/styles.scss"],
+                        "styles": ["src/styles.scss"],
                         "scripts": []
                     },
                     "configurations": {
@@ -104,4 +104,3 @@
         }
     }
 }
-

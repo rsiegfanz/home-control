@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { NavigationMenuComponent } from './navigation-menu.component';
+import { ThemeSwitchComponent } from './theme-switch.component';
 
-describe('NavigationMenuComponent', () => {
-  let component: NavigationMenuComponent;
-  let fixture: ComponentFixture<NavigationMenuComponent>;
+describe('ThemeSwitchComponent', () => {
+  let component: ThemeSwitchComponent;
+  let fixture: ComponentFixture<ThemeSwitchComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavigationMenuComponent]
+      imports: [ThemeSwitchComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(NavigationMenuComponent);
+    fixture = TestBed.createComponent(ThemeSwitchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,0 +1,6 @@
+<nav class="bg-primary font-sans">
+    <ul>
+        <li *ngFor="let room of rooms"><app-nav-bar-room [room]="room"></app-nav-bar-room></li>
+        <li><app-theme-switch></app-theme-switch></li>
+    </ul>
+</nav>

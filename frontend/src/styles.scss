@@ -1,4 +1,20 @@
-@use 'theme';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @font-face {
+        font-family: 'good_times_rg';
+        src: url('/assets/fonts/good_times_rg.otf');
+    }
+    @font-face {
+        font-family: 'prototype.regular';
+        src: url('/assets/fonts/prototype.regular.ttf');
+    }
+}
+
+@import './assets/themes/light.scss';
+@import './assets/themes/futuristic.scss';
 
 html,
 body {
@@ -7,7 +23,7 @@ body {
 
 body {
     margin: 0;
-    font-family: Roboto, 'Helvetica Neue', sans-serif;
+    padding: 0;
 }
 
 .top-pad {
@@ -25,13 +41,3 @@ body {
 .flex-spacer {
     flex: 1 1 auto;
 }
-
-html,
-body {
-    height: 100%;
-}
-body {
-    margin: 0;
-    font-family: Roboto, 'Helvetica Neue', sans-serif;
-}
-

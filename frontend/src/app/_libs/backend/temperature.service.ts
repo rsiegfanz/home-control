@@ -16,8 +16,8 @@ export class TemperatureService extends BackendService<Temperature> {
     public getLatestByRoomId(roomId: number): Observable<Temperature> {
         let url = this.createUrl();
         url = url.replace('{roomId}', roomId.toString());
+        url = url + '/latest';
 
         return this.get(url);
     }
 }
-

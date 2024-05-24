@@ -1,6 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
     // prettier-ignore
@@ -23,13 +21,8 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
     </mat-dialog-actions>
     `,
     standalone: true,
-    imports: [MatDialogModule, MatButtonModule],
+    imports: [],
 })
 export class SimpleDialogComponent {
-    constructor(
-        public dialogRef: MatDialogRef<SimpleDialogComponent, boolean>,
-        @Inject(MAT_DIALOG_DATA)
-        public data: { title: string; content: string; okText: string; cancelText: string },
-    ) {}
+    constructor(public data: { title: string; content: string; okText: string; cancelText: string }) {}
 }
-

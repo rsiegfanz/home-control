@@ -1,12 +1,11 @@
 import { Component, Input } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { TemperatureService } from '../../../libs/backend/temperature.service';
-import Room from '../../../libs/models/room.model';
+import { TemperatureService } from '../../../_libs/backend/temperature.service';
+import Room from '../../../_libs/models/room.model';
 
 @Component({
     selector: 'app-dashboard-rooms',
     standalone: true,
-    imports: [MatCardModule],
+    imports: [],
     templateUrl: './dashboard-rooms.component.html',
     styleUrl: './dashboard-rooms.component.scss',
 })
@@ -16,7 +15,6 @@ export class DashboardRoomsComponent {
     constructor(private _temperatureService: TemperatureService) {}
 
     ngOnInit() {
-        // this._temperatureService.getLatestByRoomId(roomId)
+        // this._temperatureService.getLatestByRoomId(1).subscribe();
     }
 }
-

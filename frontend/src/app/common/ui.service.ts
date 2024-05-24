@@ -1,6 +1,4 @@
 import { importProvidersFrom, Injectable, makeEnvironmentProviders } from '@angular/core';
-import { MatDialog, MatDialogConfig, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 
 import { SimpleDialogComponent } from './simple-dialog.component';
@@ -9,35 +7,9 @@ import { SimpleDialogComponent } from './simple-dialog.component';
     providedIn: 'root',
 })
 export class UiService {
-    constructor(
-        private snackBar: MatSnackBar,
-        private dialog: MatDialog,
-    ) {}
+    constructor() {}
 
-    showToast(message: string, action = 'Close', config?: MatSnackBarConfig) {
-        this.snackBar.open(
-            message,
-            action,
-            config || {
-                duration: 7000,
-            },
-        );
-    }
+    //    showToast(message: string, action = 'Close', config?: MatSnackBarConfig) {}
 
-    showDialog(title: string, content: string, okText = 'OK', cancelText?: string, customConfig?: MatDialogConfig): Observable<boolean> {
-        const dialogRef = this.dialog.open(
-            SimpleDialogComponent,
-            customConfig || {
-                width: '300px',
-                data: { title, content, okText, cancelText },
-            },
-        );
-
-        return dialogRef.afterClosed();
-    }
+    //    showDialog(title: string, content: string, okText = 'OK', cancelText?: string, customConfig?: MatDialogConfig): Observable<boolean> {}
 }
-
-export function provideUiService() {
-    return makeEnvironmentProviders([importProvidersFrom(MatDialogModule, MatSnackBarModule)]);
-}
-

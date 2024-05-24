@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LogoutComponent } from './logout.component';
+import { NavBarRoomComponent } from './nav-bar-room.component';
 
-describe('LogoutComponent', () => {
-  let component: LogoutComponent;
-  let fixture: ComponentFixture<LogoutComponent>;
+describe('NavBarRoomComponent', () => {
+  let component: NavBarRoomComponent;
+  let fixture: ComponentFixture<NavBarRoomComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LogoutComponent]
+      imports: [NavBarRoomComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(LogoutComponent);
+    fixture = TestBed.createComponent(NavBarRoomComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
