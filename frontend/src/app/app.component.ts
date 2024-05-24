@@ -34,4 +34,3 @@ export class AppComponent {
         iconRegistry.addSvgIcon('home', sanitizer.bypassSecurityTrustResourceUrl('assets/img/icons/home.svg'));
     }
 }
-
