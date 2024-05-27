@@ -12,6 +12,7 @@ module.exports = {
                 danger: 'var(--color-danger)',
                 info: 'var(--color-info)',
                 label: 'var(--color-label)',
+                page: 'var(--color-page)',
             },
             fontSize: {
                 lg: 'var(--font-primary)',
