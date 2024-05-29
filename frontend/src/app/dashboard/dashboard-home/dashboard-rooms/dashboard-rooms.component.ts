@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { TemperatureService } from '../../../_libs/backend/temperature.service';
-import Room from '../../../_libs/models/room.model';
+import { TemperatureService } from '../../../_libs/house/backend/temperature.service';
+import Room from '../../../_libs/house/models/room.model';
 
 @Component({
     selector: 'app-dashboard-rooms',

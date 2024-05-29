@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
-import { TemperatureService } from '../../../_libs/backend/temperature.service';
-import Room from '../../../_libs/models/room.model';
-import Temperature from '../../../_libs/models/temperature.model';
+import { ApiResponse } from '../../../_libs/backend/models/api-response.model';
+import { TemperatureService } from '../../../_libs/house/backend/temperature.service';
+import Room from '../../../_libs/house/models/room.model';
+import Temperature from '../../../_libs/house/models/temperature.model';
 
 @Component({
     selector: 'app-nav-bar-room',
@@ -33,9 +34,17 @@ export class NavBarRoomComponent {
                 startWith(0),
                 switchMap(() => this._temperatureService.getLatestByRoomId(this.room.id)),
             )
-            .subscribe((value: Temperature) => {
-                const val = Number(value.value);
-                this.temperature = Number((Math.round(val * 100) / 100).toFixed(2));
+            .subscribe((apiResponse: ApiResponse<Temperature>) => {
+                console.log('1');
+                if (apiResponse.isError) {
+                    console.log('2');
+                    return;
+                }
+
+                this.temperature = apiResponse.data!.value;
+
+                //    const val = Number(value.value);
+                //  this.temperature = Number((Math.round(val * 100) / 100).toFixed(2));
             });
     }
 

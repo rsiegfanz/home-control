@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import Room from '../../_libs/models/room.model';
+import Room from '../../_libs/house/models/room.model';
 import { NavBarRoomComponent } from './nav-bar-room/nav-bar-room.component';
 
 @Component({

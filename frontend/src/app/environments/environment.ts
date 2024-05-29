@@ -4,7 +4,8 @@
 
 export const environment = {
     production: false,
-    baseUrl: 'http://127.0.0.1:8080',
+    backendGoUrl: 'http://127.0.0.1:8080',
+    backendAiUrl: 'https://192.168.1.190:3000',
 
     rooms: {
         outside: 1,

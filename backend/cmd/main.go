@@ -6,19 +6,37 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"time"
 
-	"github.com/rs/homecontrol/pkg/presentation"
+	"github.com/rs/homecontrol/pkg/config"
+	"github.com/rs/homecontrol/pkg/rest"
 )
 
 func main() {
 	log.Println("Starting server")
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+
+	log.Println("cwd: ", cwd)
+
+	cfg, err := config.Read(path.Join(cwd, "config.yaml"))
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(-2)
+	}
+
+	log.Println(cfg)
+
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	srv := presentation.NewServer()
+	srv := rest.NewServer()
 
 	go func() {
 		log.Println("Start")
