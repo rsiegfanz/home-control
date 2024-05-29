@@ -1,2 +1,5 @@
 houseServer:
-    url: "http://xxx.xx
+    url: "http://xxx.xx"
+
+dataPaths:
+    latestMeasurements: "data/latest.json"
