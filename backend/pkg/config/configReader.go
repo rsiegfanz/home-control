@@ -1,24 +1,31 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
 func Read(path string) (*Config, error) {
+	var cfg Config
+
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 
-	defer f.Close()
+	defer func() {
+		if cerr := f.Close(); cerr != nil {
+			// Protokollierung des Fehlers oder eine andere geeignete Aktion
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", cerr)
+		}
+	}()
 
-	var cfg Config
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode YAML: %w", err)
 	}
 
 	return &cfg, nil
