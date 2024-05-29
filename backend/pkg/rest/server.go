@@ -17,8 +17,8 @@ func NewServer() *http.Server {
 
 	router.HandleFunc("/rooms", controllers.GetRoomsHandler)
 
-	router.HandleFunc("/rooms/{roomId}/temperatures", controllers.GetTemperaturesByRoomIdHandler)
-	router.HandleFunc("/rooms/{roomId}/temperatures/latest", controllers.GetLatestTemperatureByRoomIdHandler)
+	router.HandleFunc("/rooms/{roomId}/temperatures", controllers.GetMeasurementsByRoomIdHandler)
+	router.HandleFunc("/rooms/{roomId}/temperatures/latest", controllers.GetLatestMeasurementByRoomIdHandler)
 
 	router.Use(middleware.LoggingMiddleware)
 

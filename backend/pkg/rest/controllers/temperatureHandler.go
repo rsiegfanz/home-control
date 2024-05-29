@@ -7,12 +7,12 @@ import (
 	"github.com/rs/homecontrol/pkg/rest/presenter"
 )
 
-func GetTemperaturesByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
-	rooms := []presenter.TemperaturePresenter{
-		{11.5},
-		{11.7},
-		{11.9},
-		{12.7},
+func GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+	rooms := []presenter.MeasurementPresenter{
+		{11.5, 50.0},
+		{11.7, 49.2},
+		{11.9, 45.2},
+		{12.7, 65.0},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -20,8 +20,8 @@ func GetTemperaturesByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rooms)
 }
 
-func GetLatestTemperatureByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
-	temperature := presenter.TemperaturePresenter{11.5}
+func GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+	measurement := presenter.MeasurementPresenter{11.5, 34.2}
 
-	presenter.RespondWithData(w, temperature)
+	presenter.RespondWithData(w, measurement)
 }

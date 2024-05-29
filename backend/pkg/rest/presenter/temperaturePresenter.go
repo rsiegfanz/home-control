@@ -1,5 +1,6 @@
 package presenter
 
-type TemperaturePresenter struct {
-	Value float32 `json:"value"`
+type MeasurementPresenter struct {
+	Temperature float32 `json:"temperature"`
+	Humidity    float32 `json:"humidity"`
 }
