@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { ApiResponse } from '../../../_libs/backend/models/api-response.model';
-import { TemperatureService } from '../../../_libs/house/backend/temperature.service';
+import { MeasurementService } from '../../../_libs/house/backend/measurement.service';
+import Measurement from '../../../_libs/house/models/measurement.model';
 import Room from '../../../_libs/house/models/room.model';
-import Temperature from '../../../_libs/house/models/temperature.model';
 
 @Component({
     selector: 'app-nav-bar-room',
@@ -16,13 +16,13 @@ import Temperature from '../../../_libs/house/models/temperature.model';
 export class NavBarRoomComponent {
     @Input() room!: Room;
 
-    temperature: number | undefined;
+    measurement: Measurement | undefined;
 
     private _timeInterval: Subscription | undefined;
 
     private readonly INTERVAL = 3000;
 
-    constructor(private _temperatureService: TemperatureService) {}
+    constructor(private _measurementService: MeasurementService) {}
 
     ngOnInit(): void {
         this.getTemperature();
@@ -32,19 +32,14 @@ export class NavBarRoomComponent {
         this._timeInterval = interval(this.INTERVAL)
             .pipe(
                 startWith(0),
-                switchMap(() => this._temperatureService.getLatestByRoomId(this.room.id)),
+                switchMap(() => this._measurementService.getLatestByRoomId(this.room.id)),
             )
-            .subscribe((apiResponse: ApiResponse<Temperature>) => {
-                console.log('1');
+            .subscribe((apiResponse: ApiResponse<Measurement>) => {
                 if (apiResponse.isError) {
-                    console.log('2');
                     return;
                 }
 
-                this.temperature = apiResponse.data!.value;
-
-                //    const val = Number(value.value);
-                //  this.temperature = Number((Math.round(val * 100) / 100).toFixed(2));
+                this.measurement = apiResponse.data!;
             });
     }
 

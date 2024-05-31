@@ -1,9 +1,10 @@
 import { IBaseRequestDto } from '../../../backend/dtos/base-request-dto.interface';
 import { IBaseResponseDto } from '../../../backend/dtos/base-response-dto.interface';
 
-export interface TemperatureRequestDto extends IBaseRequestDto {}
+export interface MeasurementRequestDto extends IBaseRequestDto {}
 
-export interface TemperatureResponseDto extends IBaseResponseDto {
+export interface MeasurementResponseDto extends IBaseResponseDto {
     timestamp: Date;
-    value: number;
+    temperature: number;
+    humidity: number;
 }

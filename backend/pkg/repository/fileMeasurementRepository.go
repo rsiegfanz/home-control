@@ -2,21 +2,16 @@ package repository
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/rs/homecontrol/pkg/models"
 )
 
 func SaveLatestAll(filePath string, measurements []models.Measurement) error {
-	log.Println("saving")
-
 	jsonString, err := json.Marshal(measurements)
 	if err != nil {
 		return err
 	}
-
-	log.Println(jsonString)
 
 	data := []byte(jsonString)
 

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { TemperatureService } from '../../../_libs/house/backend/temperature.service';
+import { MeasurementService } from '../../../_libs/house/backend/measurement.service';
 import Room from '../../../_libs/house/models/room.model';
 
 @Component({
@@ -12,7 +12,7 @@ import Room from '../../../_libs/house/models/room.model';
 export class DashboardRoomsComponent {
     @Input({ required: true }) rooms!: Room[];
 
-    constructor(private _temperatureService: TemperatureService) {}
+    constructor(private _measurementService: MeasurementService) {}
 
     ngOnInit() {
         // this._temperatureService.getLatestByRoomId(1).subscribe();

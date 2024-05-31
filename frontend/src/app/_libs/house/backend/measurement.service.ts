@@ -3,23 +3,23 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../backend/models/api-response.model';
 import { BaseApiRepository } from '../../backend/services/repositories/base-api.repository';
-import Temperature from '../models/temperature.model';
-import { TemperatureRequestDto, TemperatureResponseDto } from './dtos/temperature.dto';
-import { mapModelToRequestDto, mapResponseDtoToModel } from './mappers/temperature.mapper';
+import Measurement from '../models/measurement.model';
+import { MeasurementRequestDto, MeasurementResponseDto } from './dtos/measurement.dto';
+import { mapModelToRequestDto, mapResponseDtoToModel } from './mappers/measurement.mapper';
 
 @Injectable({
     providedIn: 'root',
 })
-export class TemperatureService extends BaseApiRepository<Temperature, TemperatureResponseDto, TemperatureRequestDto> {
+export class MeasurementService extends BaseApiRepository<Measurement, MeasurementResponseDto, MeasurementRequestDto> {
     protected readonly url = environment.backendGoUrl;
 
-    protected readonly path = 'rooms/{roomId}/temperatures';
+    protected readonly path = 'rooms/{roomId}/measurements';
 
     public mapResponseDtoToModel = mapResponseDtoToModel;
 
     public mapModelToRequestDto = mapModelToRequestDto;
 
-    public getLatestByRoomId(roomId: number): Observable<ApiResponse<Temperature>> {
+    public getLatestByRoomId(roomId: number): Observable<ApiResponse<Measurement>> {
         let url = this.urlCombine();
         url = url.replace('{roomId}', roomId.toString());
         url = url + '/latest';
