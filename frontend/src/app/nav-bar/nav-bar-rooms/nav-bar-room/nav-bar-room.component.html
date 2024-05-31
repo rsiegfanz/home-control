@@ -1,1 +1,5 @@
-<div *ngIf="measurement !== undefined"> {{ room.name }} {{ measurement.temperature }} °C </div>
+<div *ngIf="measurement !== undefined" class="room">
+    <fa-icon class="fa-2xl" [icon]="room.icon"></fa-icon>
+    <div *ngIf="measurement.humidity > 1; else elseBlock"> {{ room.name }} {{ measurement.temperature }} °C / {{ measurement.humidity }} %</div>
+    <ng-template #elseBlock> {{ room.name }} {{ measurement.temperature }} °C</ng-template>
+</div>

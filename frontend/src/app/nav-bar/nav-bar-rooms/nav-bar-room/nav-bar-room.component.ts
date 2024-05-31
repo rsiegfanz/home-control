@@ -1,15 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { ApiResponse } from '../../../_libs/backend/models/api-response.model';
 import { MeasurementService } from '../../../_libs/house/backend/measurement.service';
 import Measurement from '../../../_libs/house/models/measurement.model';
 import Room from '../../../_libs/house/models/room.model';
+import { IconDataprovider } from '../../../_libs/icons/icon.dataprovider';
 
 @Component({
     selector: 'app-nav-bar-room',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FaIconComponent],
     templateUrl: './nav-bar-room.component.html',
     styleUrl: './nav-bar-room.component.scss',
 })
@@ -17,6 +19,8 @@ export class NavBarRoomComponent {
     @Input() room!: Room;
 
     measurement: Measurement | undefined;
+
+    public iconProvider = IconDataprovider;
 
     private _timeInterval: Subscription | undefined;
 

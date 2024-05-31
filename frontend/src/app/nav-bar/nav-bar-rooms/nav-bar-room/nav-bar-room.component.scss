@@ -1,0 +1,12 @@
+.room {
+    border: 1px var(--color-primary);
+    border-radius: 20px;
+    padding: 5px;
+    margin: 5px;
+    background-color: var(--color-primary);
+    display: flex;
+}
+
+.room fa-icon {
+    padding-right: 1rem;
+}
