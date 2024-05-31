@@ -2,12 +2,30 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"slices"
 
+	"github.com/rs/homecontrol/pkg/config"
 	"github.com/rs/homecontrol/pkg/models"
 )
 
-func SaveLatestAll(filePath string, measurements []models.Measurement) error {
+var singleInstance *Repository
+
+type Repository struct {
+	config *config.Config
+}
+
+func CreateInstance(config *config.Config) *Repository {
+	singleInstance = &Repository{config: config}
+	return singleInstance
+}
+
+func GetInstance() *Repository {
+	return singleInstance
+}
+
+func (r *Repository) SaveLatestAll(measurements []models.Measurement) error {
 	jsonString, err := json.Marshal(measurements)
 	if err != nil {
 		return err
@@ -15,13 +33,13 @@ func SaveLatestAll(filePath string, measurements []models.Measurement) error {
 
 	data := []byte(jsonString)
 
-	return os.WriteFile(filePath, data, 0644)
+	return os.WriteFile(r.config.DataPaths.LatestMeasurements, data, 0644)
 }
 
-func ReadLatest(filePath string) ([]models.Measurement, error) {
+func (r *Repository) ReadLatest() ([]models.Measurement, error) {
 	measurements := []models.Measurement{}
 
-	data, err := os.ReadFile(filePath)
+	data, err := os.ReadFile(r.config.DataPaths.LatestMeasurements)
 	if err != nil {
 		return measurements, err
 	}
@@ -34,12 +52,18 @@ func ReadLatest(filePath string) ([]models.Measurement, error) {
 	return measurements, nil
 }
 
-func ReadLatestByRoomId(filePath string, roomId int) (models.Measurement, error) {
+func (r *Repository) ReadLatestByRoomId(roomId int) (models.Measurement, error) {
 	measurement := models.Measurement{}
-	measurements, err := ReadLatest(filePath)
+	measurements, err := r.ReadLatest()
 	if err != nil {
 		return measurement, err
 	}
 
-	return measurements[0], nil
+	idx := slices.IndexFunc(measurements, func(measurement models.Measurement) bool { return measurement.Id == roomId })
+
+	if idx == -1 {
+		return measurement, fmt.Errorf("measurement not found for room %d", roomId)
+	}
+
+	return measurements[idx], nil
 }

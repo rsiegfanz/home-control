@@ -18,6 +18,8 @@ func RunService(latestUrl string, latestFilePath string) {
 }
 
 func fetchLatest(url string, filePath string) {
+	repository := repository.GetInstance()
+
 	for {
 		sleep()
 
@@ -30,7 +32,7 @@ func fetchLatest(url string, filePath string) {
 
 		measurements := MapMeasurementDtosToModels(measurementDtos)
 
-		repository.SaveLatestAll(filePath, measurements)
+		repository.SaveLatestAll(measurements)
 	}
 }
 
@@ -75,7 +77,7 @@ func parseLatest(value string) ([]MeasurementDto, error) {
 			continue
 		}
 
-		if strings.HasSuffix(line, ".werte") {
+		if strings.HasSuffix(line, ".werte") || line == "funkbme280" {
 			currentHeader = line
 			continue
 		}

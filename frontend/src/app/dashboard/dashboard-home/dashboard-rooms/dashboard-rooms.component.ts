@@ -14,7 +14,5 @@ export class DashboardRoomsComponent {
 
     constructor(private _measurementService: MeasurementService) {}
 
-    ngOnInit() {
-        // this._temperatureService.getLatestByRoomId(1).subscribe();
-    }
+    ngOnInit() {}
 }

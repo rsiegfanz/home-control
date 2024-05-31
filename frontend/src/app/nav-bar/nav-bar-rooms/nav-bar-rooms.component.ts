@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import Room from '../../_libs/house/models/room.model';
 import { NavBarRoomComponent } from './nav-bar-room/nav-bar-room.component';
+import { RoomId } from '../../_libs/house/enums/rooms.enum';
 
 @Component({
     selector: 'app-nav-bar-rooms',
@@ -12,9 +13,10 @@ import { NavBarRoomComponent } from './nav-bar-room/nav-bar-room.component';
 })
 export class NavBarRoomsComponent {
     rooms: Room[] = [
-        { id: 1, name: 'outside' },
-        { id: 2, name: 'bedroom' },
-        { id: 3, name: 'kitchen' },
-        { id: 4, name: 'office' },
+        { id: RoomId.GARAGE, name: 'outside' },
+        { id: RoomId.FIRST_FLOOR_GALLERY, name: 'Empore' },
+        { id: RoomId.FIRST_FLOOR_LIVING_ROOM, name: 'Wohnzimmer' },
+        { id: RoomId.FIRST_FLOOR_KITCHEN, name: 'Küche' },
+        { id: RoomId.FIRST_FLOOR_BEDROOM, name: 'Schlafzimmer' },
     ];
 }

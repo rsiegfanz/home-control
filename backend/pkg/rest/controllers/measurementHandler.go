@@ -3,7 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
+	"github.com/rs/homecontrol/pkg/repository"
 	"github.com/rs/homecontrol/pkg/rest/presenter"
 )
 
@@ -21,7 +24,22 @@ func GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
-	measurement := presenter.MeasurementPresenter{11.5, 34.2}
+	params := mux.Vars(r)
+	roomIdStr := params["roomId"]
 
-	presenter.RespondWithData(w, measurement)
+	roomId, err := strconv.Atoi(roomIdStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	repository := repository.GetInstance()
+
+	measurement, err := repository.ReadLatestByRoomId(roomId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	presenter.RespondWithData(w, presenter.MeasurementPresenter{measurement.Temperature, measurement.Humidity})
 }

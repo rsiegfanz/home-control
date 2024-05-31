@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
 import { RoomsService } from '../../_libs/house/backend/rooms.service';
-import Room from '../../_libs/house/models/room.model';
 import { DashboardRoomsComponent } from './dashboard-rooms/dashboard-rooms.component';
 
 @Component({
@@ -13,11 +11,7 @@ import { DashboardRoomsComponent } from './dashboard-rooms/dashboard-rooms.compo
     styleUrl: './dashboard-home.component.scss',
 })
 export class DashboardHomeComponent {
-    public rooms$: Observable<Room[]>;
-
-    constructor(private _roomsService: RoomsService) {
-        this.rooms$ = this._roomsService.getAll();
-    }
+    constructor(private _roomsService: RoomsService) {}
 
     ngOnInit() {}
 }

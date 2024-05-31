@@ -7,10 +7,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Read(path string) (*Config, error) {
+func Read(filePath string) (*Config, error) {
 	var cfg Config
 
-	f, err := os.Open(path)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
