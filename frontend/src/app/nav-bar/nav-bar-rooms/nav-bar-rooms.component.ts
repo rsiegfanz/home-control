@@ -18,5 +18,6 @@ export class NavBarRoomsComponent {
         { id: RoomId.FIRST_FLOOR_LIVING_ROOM, name: 'Wohnzimmer' },
         { id: RoomId.FIRST_FLOOR_KITCHEN, name: 'Küche' },
         { id: RoomId.FIRST_FLOOR_BEDROOM, name: 'Schlafzimmer' },
+        { id: RoomId.BASEMENT_GYM, name: 'Gym' },
     ];
 }
