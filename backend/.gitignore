@@ -11,4 +11,6 @@ main
 
 data/
 
+webapp/
+
 config.yaml

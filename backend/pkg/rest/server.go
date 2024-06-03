@@ -13,12 +13,14 @@ import (
 func NewServer() *http.Server {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", controllers.HelloWorldHandler)
+	// router.HandleFunc("/", controllers.HelloWorldHandler)
 
 	router.HandleFunc("/rooms", controllers.GetRoomsHandler)
 
 	router.HandleFunc("/rooms/{roomId}/measurements", controllers.GetMeasurementsByRoomIdHandler)
 	router.HandleFunc("/rooms/{roomId}/measurements/latest", controllers.GetLatestMeasurementByRoomIdHandler)
+
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./webapp/")))
 
 	router.Use(middleware.LoggingMiddleware)
 
