@@ -12,35 +12,34 @@ RUN go mod download
 COPY backend/cmd ./cmd
 COPY backend/pkg ./pkg
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o backend-service cmd/main.go
-
-RUN ls -l .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /backend-service cmd/main.go
 
 FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
 WORKDIR /
+COPY --from=build-backend /backend-service /backend-service
 
-COPY --from=build-stage backend-service backend-service
+COPY /backend/config.yaml /config.yaml
 
-EXPOSE 8080
+EXPOSE 5000
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/docker-gs-ping"]
+# ENTRYPOINT ["/backend-service"]
 
 
 #FRONTEND
-FROM node:20 AS frontend
+# FROM node:20 AS frontend
 
-WORKDIR /webapp
+# WORKDIR /webapp
 
-COPY frontend/package*.json ./package.json
-COPY frontend/src ./src
+# COPY frontend/package*.json ./package.json
+# COPY frontend/src ./src
 
-RUN npm install
-RUN npm run build
+# RUN npm install
+# RUN npm run build
 
 
 # RUN
 
-CMD ["/docker-homecontrol"]
+CMD ["/backend-service"]
