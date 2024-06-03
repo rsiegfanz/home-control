@@ -14,32 +14,30 @@ COPY backend/pkg ./pkg
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /backend-service cmd/main.go
 
+
+#FRONTEND
+FROM node:20 AS build-frontend
+
+WORKDIR app
+
+COPY frontend/ ./
+
+RUN npm install
+RUN npm run build:prod
+
+# COPY
 FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
 WORKDIR /
 COPY --from=build-backend /backend-service /backend-service
-
 COPY /backend/config.yaml /config.yaml
+
+COPY --from=build-frontend app/dist/home-control/browser /webapp
 
 EXPOSE 5000
 
 USER nonroot:nonroot
 
-# ENTRYPOINT ["/backend-service"]
-
-
-#FRONTEND
-# FROM node:20 AS frontend
-
-# WORKDIR /webapp
-
-# COPY frontend/package*.json ./package.json
-# COPY frontend/src ./src
-
-# RUN npm install
-# RUN npm run build
-
 
 # RUN
-
 CMD ["/backend-service"]
