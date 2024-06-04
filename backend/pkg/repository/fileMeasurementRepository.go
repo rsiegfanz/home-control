@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/rs/homecontrol/pkg/config"
@@ -16,9 +17,15 @@ type Repository struct {
 	config *config.Config
 }
 
-func CreateInstance(config *config.Config) *Repository {
+func CreateInstance(config *config.Config) (*Repository, error) {
 	singleInstance = &Repository{config: config}
-	return singleInstance
+
+	err := singleInstance.createDataFolder()
+	if err != nil {
+		return nil, err
+	}
+
+	return singleInstance, nil
 }
 
 func GetInstance() *Repository {
@@ -66,4 +73,9 @@ func (r *Repository) ReadLatestByRoomId(roomId int) (models.Measurement, error) 
 	}
 
 	return measurements[idx], nil
+}
+
+func (r *Repository) createDataFolder() error {
+	dir := filepath.Dir(r.config.DataPaths.LatestMeasurements)
+	return os.MkdirAll(dir, os.ModePerm)
 }

@@ -13,11 +13,11 @@ import (
 	"github.com/rs/homecontrol/pkg/repository"
 )
 
-func RunService(latestUrl string, latestFilePath string) {
-	go fetchLatest(latestUrl, latestFilePath)
+func RunService(latestUrl string) {
+	go fetchLatest(latestUrl)
 }
 
-func fetchLatest(url string, filePath string) {
+func fetchLatest(url string) {
 	repository := repository.GetInstance()
 
 	for {
@@ -32,7 +32,10 @@ func fetchLatest(url string, filePath string) {
 
 		measurements := MapMeasurementDtosToModels(measurementDtos)
 
-		repository.SaveLatestAll(measurements)
+		err = repository.SaveLatestAll(measurements)
+		if err != nil {
+			log.Println("save latest error: ", err)
+		}
 	}
 }
 

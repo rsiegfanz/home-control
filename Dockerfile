@@ -12,6 +12,8 @@ RUN go mod download
 COPY backend/cmd ./cmd
 COPY backend/pkg ./pkg
 
+RUN mkdir -p /data
+
 RUN CGO_ENABLED=0 GOOS=linux go build -o /backend-service cmd/main.go
 
 
@@ -28,16 +30,18 @@ RUN npm run build:prod
 # COPY
 FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
-WORKDIR /
-COPY --from=build-backend /backend-service /backend-service
-COPY /backend/config.yaml /config.yaml
+WORKDIR app
+COPY --from=build-backend /backend-service ./backend-service
+COPY --from=build-backend /data ./data
+COPY /backend/config.yaml ./config.yaml
 
-COPY --from=build-frontend app/dist/home-control/browser /webapp
+COPY --from=build-frontend app/dist/home-control/browser ./webapp
 
-EXPOSE 5000
+
+EXPOSE 8080
 
 USER nonroot:nonroot
 
 
 # RUN
-CMD ["/backend-service"]
+CMD ["/app/backend-service"]

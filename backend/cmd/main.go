@@ -73,9 +73,13 @@ func bootstrapConfig() *config.Config {
 }
 
 func bootstrapRepository(cfg *config.Config) {
-	repository.CreateInstance(cfg)
+	_, err := repository.CreateInstance(cfg)
+	if err != nil {
+		log.Fatal("could not init repository: ", err)
+		os.Exit(-3)
+	}
 }
 
 func bootstrapHttpFetcher(cfg *config.Config) {
-	httpfetcher.RunService(cfg.HouseServer.Url, cfg.DataPaths.LatestMeasurements)
+	httpfetcher.RunService(cfg.HouseServer.Url)
 }
