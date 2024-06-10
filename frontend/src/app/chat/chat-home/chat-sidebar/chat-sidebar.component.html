@@ -1,3 +1,17 @@
 <div class="sidebar">
-    <p>chat-sidebar works!</p>
+    <nav>
+        <ul>
+            <li class="newchat">
+                <div *ngIf="!toggleInputNewChat" (click)="addNewChat()">Neuer Chat</div>
+                <div *ngIf="toggleInputNewChat">
+                    <input type="text" #inputNewChat class="inputNewChat" />
+                    <fa-icon class="chatIcon fa-2xl" (click)="submitNewChat()" [icon]="iconProvider.ok"></fa-icon>
+                    <fa-icon class="chatIcon fa-2xl" (click)="cancelNewChat()" [icon]="iconProvider.cancel"></fa-icon>
+                </div>
+            </li>
+            <li class="chat" (click)="selectChat()">Chat1</li>
+            <li class="chat">Chat2</li>
+            <li class="chat">Chat3</li>
+        </ul>
+    </nav>
 </div>

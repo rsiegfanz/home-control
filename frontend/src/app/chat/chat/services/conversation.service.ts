@@ -15,18 +15,18 @@ import { ESortDirection, ODataOrder } from '../../_shared/models/odata/odata-ord
     providedIn: 'root',
 })
 export class ConversationService {
-    public chatId = new BehaviorSubject<string | undefined>(undefined);
+    // public chatId = new BehaviorSubject<string | undefined>(undefined);
 
-    public messages$ = signal<Message[]>([]);
+    //     public messages$ = signal<Message[]>([]);
 
-    public loadingAi$ = new BehaviorSubject(false);
+    //    public loadingAi$ = new BehaviorSubject(false);
 
     constructor(
         private readonly _chatRepo: ChatRepository,
         private readonly _messageRepo: MessageRepository,
         private readonly _aiRepo: AiRepository,
     ) {
-        this.chatId
+        /*        this.chatId
             .pipe(
                 switchMap((chatId) => {
                     console.log('trigger message loading', chatId);
@@ -55,17 +55,24 @@ export class ConversationService {
                 }),
             )
             .subscribe();
+            */
+    }
+
+    public createChat(name: string): Observable<Chat> {
+        //return this._chatRepo.insert(new Chat());
     }
 
     public addDocumentToChat(document: File): Observable<void> {
-        const chatIdValue = this.chatId.getValue();
+        /*        const chatIdValue = this.chatId.getValue();
         if (!chatIdValue) {
             return of();
         }
         return this._aiRepo.rag(document, chatIdValue);
+      */
     }
 
     public saveMessage(message: string, shouldAiAnswer = true): Observable<Message | undefined> {
+        /*
         const chatId = this.chatId.getValue();
         if (!chatId) {
             throw new Error('No chatId set');
@@ -79,10 +86,11 @@ export class ConversationService {
             return insertObs$;
         }
         return insertObs$.pipe(switchMap(() => this.getAiAnswer()));
+*/
     }
 
     public getAiAnswer(): Observable<Message | undefined> {
-        const chatId = this.chatId.getValue();
+        /*        const chatId = this.chatId.getValue();
         if (!chatId) {
             throw new Error('No chatId set');
         }
@@ -95,10 +103,11 @@ export class ConversationService {
             }),
             finalize(() => this.loadingAi$.next(false)),
         );
+*/
     }
 
     private _insertMessage(messageObj: Message) {
-        return this._messageRepo.insert(messageObj).pipe(
+        /*        return this._messageRepo.insert(messageObj).pipe(
             map((apiResponse) => {
                 this.messages$.update((values) => [...values, apiResponse.data!]);
                 if (apiResponse.status === 201) {
@@ -113,5 +122,6 @@ export class ConversationService {
                 return of(undefined);
             }),
         );
+*/
     }
 }

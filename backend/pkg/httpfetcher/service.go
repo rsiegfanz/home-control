@@ -13,15 +13,15 @@ import (
 	"github.com/rs/homecontrol/pkg/repository"
 )
 
-func RunService(latestUrl string) {
-	go fetchLatest(latestUrl)
+func RunService(latestUrl string, interval time.Duration) {
+	go fetchLatest(latestUrl, interval)
 }
 
-func fetchLatest(url string) {
+func fetchLatest(url string, interval time.Duration) {
 	repository := repository.GetInstance()
 
 	for {
-		sleep()
+		sleep(interval)
 
 		log.Println("fetch latest")
 
@@ -100,6 +100,6 @@ func parseLatest(value string) ([]MeasurementDto, error) {
 	return measurements, nil
 }
 
-func sleep() {
-	time.Sleep(5 * time.Second)
+func sleep(interval time.Duration) {
+	time.Sleep(interval * time.Second)
 }

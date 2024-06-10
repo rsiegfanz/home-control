@@ -1,4 +1,4 @@
-import { faBed, faDesktop, faDumbbell, faKitchenSet, faTree, faTv } from '@fortawesome/free-solid-svg-icons';
+import { faBed, faDesktop, faDumbbell, faKitchenSet, faRectangleXmark, faSquareCheck, faTree, faTv } from '@fortawesome/free-solid-svg-icons';
 
 export class IconDataprovider {
     public static readonly outside = faTree;
@@ -12,4 +12,8 @@ export class IconDataprovider {
     public static readonly bedroom = faBed;
 
     public static readonly gym = faDumbbell;
+
+    public static readonly ok = faSquareCheck;
+
+    public static readonly cancel = faRectangleXmark;
 }

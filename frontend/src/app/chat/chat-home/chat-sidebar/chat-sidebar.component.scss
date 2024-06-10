@@ -1,0 +1,31 @@
+.newchat {
+    //border: 1px var(--color-danger);
+    border-radius: 20px;
+    padding: 5px;
+    margin: 5px;
+    color: var(--color-info);
+    background-color: var(--color-primary);
+}
+
+.chat {
+    //border: 1px var(--color-danger);
+    border-radius: 20px;
+    padding: 5px;
+    margin: 5px;
+    color: var(--color-info);
+    background-color: var(--color-primary);
+}
+
+.chatIcon {
+    padding: 1px;
+    margin: 1px;
+}
+
+.inputNewChat {
+    width: 97%;
+    border-radius: 10px;
+    padding: 5px;
+    margin: 5px;
+    color: var(--color-info);
+    background-color: var(--color-primary);
+}

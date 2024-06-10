@@ -81,5 +81,5 @@ func bootstrapRepository(cfg *config.Config) {
 }
 
 func bootstrapHttpFetcher(cfg *config.Config) {
-	httpfetcher.RunService(cfg.HouseServer.Url)
+	httpfetcher.RunService(cfg.HouseServer.Url, 30)
 }
