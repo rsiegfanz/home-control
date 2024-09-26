@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16.4
+    container_name: postgres_home_control
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-home_control_db}
+      POSTGRES_USER: ${POSTGRES_USER:-home_control_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-home_control_password}
+    volumes:
+      - d:/dev/docker/share/home-control:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - home_control_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_home_control
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@home-control.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    networks:
+      - home_control_network
+
+networks:
+  home_control_network:
+    driver: bridge

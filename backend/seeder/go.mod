@@ -1,6 +1,8 @@
-module github.com/rsiegfanz/home-control/backend/sharedlib
+module github.com/rsiegfanz/home-control/backend/fetcher
 
 go 1.23.1
+
+require github.com/rsiegfanz/home-control/backend/sharedlib v0.0.0
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -15,3 +17,5 @@ require (
 	gorm.io/driver/postgres v1.5.9 // indirect
 	gorm.io/gorm v1.25.12 // indirect
 )
+
+replace github.com/rsiegfanz/home-control/backend/sharedlib => ../sharedlib
