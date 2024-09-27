@@ -137,13 +137,12 @@ func parseLatest(value string) ([]MeasurementDto, error) {
 }
 
 func (f *RoomFetcher) send(measurements []MeasurementDto) error {
-	jsonData, err := json.Marshal(measurements)
-	if err != nil {
-		return fmt.Errorf("Error marshaling data %v", err)
-	}
-
 	for _, measurement := range measurements {
-		// Schreibe die Daten zu Kafka
+		jsonData, err := json.Marshal(measurement)
+		if err != nil {
+			return fmt.Errorf("Error marshaling data %v", err)
+		}
+
 		err = f.KafkaWriter.WriteMessages(context.Background(),
 			kafka.Message{
 				Key:   []byte(measurement.FileId),

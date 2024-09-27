@@ -65,14 +65,17 @@ func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
 	postgresConfig.Password = "home_control_password"
 
 	kafkaConfig := kafka.Config{}
-	kafkaConfig.Host = "localhost"
+	kafkaConfig.Host = "localhost:9092"
+
+	// redisConfig := redis.Config{}
+	// redisConfig.Host = "localhost:6379"
 
 	fetcherConfig, err := config.LoadConfig[configs.FetcherConfig]()
 	if err != nil {
 		logging.Logger.Fatal("Error loading config", zap.Error(err))
 	}
 
-	log.Printf("LOGGING CONFIG:", fetcherConfig)
+	log.Printf("LOGGING CONFIG: %v", fetcherConfig)
 
 	//	fetcherConfig := configs.FetcherConfig{}
 	//	fetcherConfig.Url = ""
