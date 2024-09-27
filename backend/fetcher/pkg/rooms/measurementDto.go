@@ -1,4 +1,4 @@
-package httpfetcher
+package rooms
 
 type MeasurementDto struct {
 	FileId      string

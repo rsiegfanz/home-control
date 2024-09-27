@@ -1,6 +1,6 @@
-package config
+package kafka
 
-type ConfigPostgres struct {
+type Config struct {
 	Host     string `env:"HOST"`
 	User     string `env:"USER"`
 	Password string `env:"PASSWORD"`

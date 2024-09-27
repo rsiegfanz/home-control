@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-home_control_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-home_control_password}
     volumes:
-      - d:/dev/docker/share/home-control:/var/lib/postgresql/data
+      - d:/dev/docker/share/home-control/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -24,6 +24,38 @@ services:
     networks:
       - home_control_network
 
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - home_control_network
+
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: promtail
+    volumes:
+      - d:/dev/docker/share/home-control/promtail:/var/log
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - home_control_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    networks:
+      - home_control_network
 networks:
   home_control_network:
     driver: bridge

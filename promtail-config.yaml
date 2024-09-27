@@ -1,0 +1,25 @@
+server:
+  http_listen_port: 9080 # Port für den Promtail-HTTP-Server (zur Überwachung und Statusabfrage)
+  grpc_listen_port: 0 # Deaktiviert gRPC (falls nicht benötigt)
+
+positions:
+  filename: /tmp/positions.yaml # Datei zur Speicherung der Log-Positionen (auf Linux/Mac). Passe den Pfad für Windows an, z.B. C:\promtail\positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push # URL des Loki-Servers, an den die Logs gesendet werden
+
+scrape_configs:
+  - job_name: file-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: local-file-logs # Identifikation der Logs in Loki
+          __path__: d:\\dev\\docker\\share\\home-control\\promtail\\*.log # Verwendet das Verzeichnis mit den Logs aller Apps
+
+    # Optional: Pipeline zur Log-Verarbeitung
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            msg: msg

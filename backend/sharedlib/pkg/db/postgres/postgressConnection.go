@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitDB(config config.ConfigPostgres) (*gorm.DB, error) {
+func InitDB(config Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
 		config.Host, config.User, config.Password, config.DbName,
