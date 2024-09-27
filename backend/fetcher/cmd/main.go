@@ -5,6 +5,7 @@ import (
 
 	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/configs"
 	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/rooms"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/kafka"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
@@ -14,7 +15,8 @@ import (
 )
 
 func main() {
-	logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
+	// logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
+	logPath := "/mnt/d/dev/docker/share"
 	if err := logging.InitLogger("info", "fetcher", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
@@ -45,7 +47,7 @@ func main() {
 	if err != nil {
 		logging.Logger.Fatal("Error instantiating room fetcher", zap.Error(err))
 	}
-	roomFetcher.Fetch(dbRooms)
+	roomFetcher.FetchLatest()
 
 	logging.Logger.Info("Logger stopped")
 }
@@ -65,13 +67,15 @@ func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
 	kafkaConfig := kafka.Config{}
 	kafkaConfig.Host = "localhost"
 
-	/*config, err := pkg.LoadConfig[configs.FetcherConfig]()
+	fetcherConfig, err := config.LoadConfig[configs.FetcherConfig]()
 	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}*/
+		logging.Logger.Fatal("Error loading config", zap.Error(err))
+	}
 
-	fetcherConfig := configs.FetcherConfig{}
-	fetcherConfig.Url = ""
+	log.Printf("LOGGING CONFIG:", fetcherConfig)
+
+	//	fetcherConfig := configs.FetcherConfig{}
+	//	fetcherConfig.Url = ""
 
 	return postgresConfig, kafkaConfig, fetcherConfig
 }

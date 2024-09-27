@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"path"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,11 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	latestPath = "/cgi-bin/tou3.cgi"
+	args       = "10"
+)
+
 type RoomFetcher struct {
 	KafkaWriter *kafka.Writer
 	Config      configs.FetcherConfig
@@ -28,21 +34,36 @@ type RoomFetcher struct {
 func NewRoomFetcher(configFetcher configs.FetcherConfig, configKafka rskafka.Config) (*RoomFetcher, error) {
 	writer, err := rskafka.InitWriter(configKafka, "rooms")
 	if err != nil {
-		return nil, fmt.Errorf("Kafka connection error", err)
+		return nil, fmt.Errorf("Kafka connection error %v", err)
 	}
 
 	return &RoomFetcher{Config: configFetcher, KafkaWriter: writer}, nil
 }
 
-func (f *RoomFetcher) Fetch(rooms []models.Room) {
+func (f *RoomFetcher) FetchLatest() {
+	url, _ := url.JoinPath(f.Config.Url, latestPath)
+	url = url + "?" + args
+	measurements, err := fetch(url)
+	if err != nil {
+		logging.Logger.Error("Error retrieving data from url", zap.String("url", url), zap.Error(err))
+	}
+
+	err = f.send(measurements)
+	if err != nil {
+		logging.Logger.Error("Send error", zap.Error(err))
+	}
+}
+
+func (f *RoomFetcher) FetchAll(rooms []models.Room) {
 	for _, room := range rooms {
-		url := path.Join(f.Config.Url, room.ExternalId)
+		url, _ := url.JoinPath(f.Config.Url, room.ExternalId+".werte")
 		measurements, err := fetch(url)
 		if err != nil {
 			logging.Logger.Error("Error retrieving data from url", zap.String("url", url), zap.Error(err))
 			continue
 		}
 
+		log.Print(measurements)
 		err = f.send(measurements)
 		if err != nil {
 			logging.Logger.Error("Send error", zap.Error(err))
@@ -53,9 +74,14 @@ func (f *RoomFetcher) Fetch(rooms []models.Room) {
 func fetch(url string) ([]MeasurementDto, error) {
 	measurements := []MeasurementDto{}
 
+	log.Printf("CALLING URL %v", url)
 	resp, err := http.Get(url)
 	if err != nil {
-		return measurements, fmt.Errorf("HTTP error: ", err)
+		return measurements, fmt.Errorf("HTTP error: %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return measurements, fmt.Errorf("HTTP status invalid %v", resp.StatusCode)
 	}
 
 	defer resp.Body.Close()
@@ -64,9 +90,10 @@ func fetch(url string) ([]MeasurementDto, error) {
 		return measurements, err
 	}
 
+	log.Printf("body %v", string(body))
 	measurements, err = parseLatest(string(body))
 	if err != nil {
-		return measurements, fmt.Errorf("Parse error: ", err)
+		return measurements, fmt.Errorf("Parse error: %v", err)
 	}
 
 	return measurements, nil
@@ -112,7 +139,7 @@ func parseLatest(value string) ([]MeasurementDto, error) {
 func (f *RoomFetcher) send(measurements []MeasurementDto) error {
 	jsonData, err := json.Marshal(measurements)
 	if err != nil {
-		return fmt.Errorf("Error marshaling data", err)
+		return fmt.Errorf("Error marshaling data %v", err)
 	}
 
 	for _, measurement := range measurements {
@@ -124,7 +151,7 @@ func (f *RoomFetcher) send(measurements []MeasurementDto) error {
 			},
 		)
 		if err != nil {
-			return fmt.Errorf("Error writing to kafka", err)
+			return fmt.Errorf("Error writing to kafka %v", err)
 		}
 	}
 
