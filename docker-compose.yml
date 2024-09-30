@@ -42,7 +42,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_LOG_DIRS: /var/lib/kafka/data
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
 
       KAFKA_METADATA_LOG_DIR: /var/lib/kafka/kraft
       KAFKA_MIN_INSYNC_REPLICAS: 1
@@ -91,6 +91,7 @@ services:
       - loki
     networks:
       - home_control_network
+
 networks:
   home_control_network:
     driver: bridge

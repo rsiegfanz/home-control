@@ -2,13 +2,13 @@ package main
 
 import (
 	"log"
+	"time"
 
+	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/climateMeasurements"
 	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/configs"
-	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/rooms"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/kafka"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
-	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 	// "gorm.io/driver/postgres"
@@ -29,27 +29,36 @@ func main() {
 
 	logging.Logger.Info("Fetcher started")
 
-	dbConfig, kafkaConfig, fetcherConfig := loadConfigs()
+	_, kafkaConfig, fetcherConfig := loadConfigs()
+	/*
+		db, err := postgres.InitDB(dbConfig)
+		if err != nil {
+			logging.Logger.Fatal("Error opening database", zap.Error(err))
+		}
 
-	logging.Logger.Debug("Configs loaded")
-
-	db, err := postgres.InitDB(dbConfig)
-	if err != nil {
-		logging.Logger.Fatal("Error opening database", zap.Error(err))
-	}
-
-	dbRooms := []models.Room{}
-	db.Find(&dbRooms)
-
+		dbRooms := []models.Room{}
+		db.Find(&dbRooms)
+	*/
 	// logging.Logger.Sugar().Infof("rooms", rooms)
+	//
 
-	roomFetcher, err := rooms.NewRoomFetcher(fetcherConfig, kafkaConfig)
+	fetchClimateMeasurements(kafkaConfig, fetcherConfig)
+
+	logging.Logger.Info("Fetcher stopped")
+}
+
+func fetchClimateMeasurements(kafkaConfig kafka.Config, fetcherConfig configs.FetcherConfig) {
+	climateMeasurementsFetcher, err := climateMeasurements.NewFetcher(fetcherConfig, kafkaConfig)
 	if err != nil {
 		logging.Logger.Fatal("Error instantiating room fetcher", zap.Error(err))
 	}
-	roomFetcher.FetchLatest()
+	defer climateMeasurementsFetcher.Close()
 
-	logging.Logger.Info("Logger stopped")
+	for {
+		climateMeasurementsFetcher.FetchLatest()
+
+		time.Sleep(30 * time.Second)
+	}
 }
 
 func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
@@ -79,6 +88,9 @@ func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
 
 	//	fetcherConfig := configs.FetcherConfig{}
 	//	fetcherConfig.Url = ""
+	//
+
+	logging.Logger.Debug("Configs loaded")
 
 	return postgresConfig, kafkaConfig, fetcherConfig
 }

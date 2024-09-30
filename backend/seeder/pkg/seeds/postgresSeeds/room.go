@@ -1,4 +1,4 @@
-package seeds
+package postgresSeeds
 
 import (
 	"fmt"
@@ -18,8 +18,8 @@ func SeedRooms(db *gorm.DB) error {
 		{ExternalId: "4091514ef9c0.werte", Name: "OG Küche"},
 		{ExternalId: "e89f6d94fb4.werte", Name: "OG Schlafzimmer"},
 		{ExternalId: "acbfbd829b2.werte", Name: "OG Empore"},
-		{ExternalId: "e868e758ea4f.werte", Name: "Keller Gästezimmer"},
-		{ExternalId: "8cce4ef2882a.werte", Name: "Keller Fitnessraum"},
+		{ExternalId: "e868e758ea4f.werte", Name: "UG Gästezimmer"},
+		{ExternalId: "8cce4ef2882a.werte", Name: "UG Fitnessraum"},
 	}
 
 	for _, room := range rooms {

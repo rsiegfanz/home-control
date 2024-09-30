@@ -2,23 +2,24 @@ package main
 
 import (
 	"log"
+	"time"
 
-	"github.com/rsiegfanz/home-control/backend/seeder/pkg/seeds/kafkaSeeds"
-	"github.com/rsiegfanz/home-control/backend/seeder/pkg/seeds/postgresSeeds"
+	"github.com/rsiegfanz/home-control/backend/ingestor/pkg/climateMeasurements"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/kafka"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 )
 
 func main() {
 	logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
-	if err := logging.InitLogger("info", "seeder", logPath); err != nil {
+	if err := logging.InitLogger("info", "ingestor", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
 	defer logging.SyncLogger()
 
-	logging.Logger.Info("Seeder started")
+	logging.Logger.Info("Ingestor started")
 
 	dbConfig, kafkaConfig := loadConfigs()
 
@@ -27,22 +28,23 @@ func main() {
 		logging.Logger.Fatal("Error opening database", zap.Error(err))
 	}
 
-	err = postgresSeeds.SeedRooms(db)
-	if err != nil {
-		logging.Logger.Fatal("Seed postgress rooms error", zap.Error(err))
-	}
+	rooms := []models.Room{}
+	db.Find(&rooms)
 
-	err = postgresSeeds.SeedElectricityMeter(db)
-	if err != nil {
-		logging.Logger.Fatal("Seed postgress electricity meters error", zap.Error(err))
-	}
+	ingestClimateMeasurements(dbConfig, kafkaConfig)
 
-	err = kafkaSeeds.SeedTopics(kafkaConfig)
-	if err != nil {
-		logging.Logger.Fatal("Seed Kafka topics error", zap.Error(err))
-	}
+	logging.Logger.Sugar().Infof("rooms", rooms)
+}
 
-	logging.Logger.Info("Seeder finished")
+func ingestClimateMeasurements(postgresConfig postgres.Config, kafkaConfig kafka.Config) {
+	ingestor := climateMeasurements.NewIngestor(postgresConfig, kafkaConfig)
+	defer ingestor.Close()
+
+	for {
+		ingestor.Execute()
+
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func loadConfigs() (postgres.Config, kafka.Config) {

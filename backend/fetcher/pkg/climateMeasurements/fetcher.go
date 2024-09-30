@@ -1,4 +1,4 @@
-package rooms
+package climateMeasurements
 
 import (
 	"bufio"
@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/rsiegfanz/home-control/backend/fetcher/pkg/configs"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/kafka/dtos"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 
@@ -26,21 +27,25 @@ var (
 	args       = "10"
 )
 
-type RoomFetcher struct {
+type Fetcher struct {
 	KafkaWriter *kafka.Writer
 	Config      configs.FetcherConfig
 }
 
-func NewRoomFetcher(configFetcher configs.FetcherConfig, configKafka rskafka.Config) (*RoomFetcher, error) {
-	writer, err := rskafka.InitWriter(configKafka, "rooms")
+func NewFetcher(configFetcher configs.FetcherConfig, configKafka rskafka.Config) (*Fetcher, error) {
+	writer, err := rskafka.InitWriter(configKafka, rskafka.TopicClimateMeasurements)
 	if err != nil {
 		return nil, fmt.Errorf("Kafka connection error %v", err)
 	}
 
-	return &RoomFetcher{Config: configFetcher, KafkaWriter: writer}, nil
+	return &Fetcher{Config: configFetcher, KafkaWriter: writer}, nil
 }
 
-func (f *RoomFetcher) FetchLatest() {
+func (f *Fetcher) Close() {
+	defer f.KafkaWriter.Close()
+}
+
+func (f *Fetcher) FetchLatest() {
 	url, _ := url.JoinPath(f.Config.Url, latestPath)
 	url = url + "?" + args
 	measurements, err := fetch(url)
@@ -54,7 +59,7 @@ func (f *RoomFetcher) FetchLatest() {
 	}
 }
 
-func (f *RoomFetcher) FetchAll(rooms []models.Room) {
+func (f *Fetcher) FetchHistory(rooms []models.Room) {
 	for _, room := range rooms {
 		url, _ := url.JoinPath(f.Config.Url, room.ExternalId+".werte")
 		measurements, err := fetch(url)
@@ -63,7 +68,6 @@ func (f *RoomFetcher) FetchAll(rooms []models.Room) {
 			continue
 		}
 
-		log.Print(measurements)
 		err = f.send(measurements)
 		if err != nil {
 			logging.Logger.Error("Send error", zap.Error(err))
@@ -71,8 +75,8 @@ func (f *RoomFetcher) FetchAll(rooms []models.Room) {
 	}
 }
 
-func fetch(url string) ([]MeasurementDto, error) {
-	measurements := []MeasurementDto{}
+func fetch(url string) ([]dtos.ClimateMeasurement, error) {
+	measurements := []dtos.ClimateMeasurement{}
 
 	log.Printf("CALLING URL %v", url)
 	resp, err := http.Get(url)
@@ -90,7 +94,7 @@ func fetch(url string) ([]MeasurementDto, error) {
 		return measurements, err
 	}
 
-	log.Printf("body %v", string(body))
+	// log.Printf("body %v", string(body))
 	measurements, err = parseLatest(string(body))
 	if err != nil {
 		return measurements, fmt.Errorf("Parse error: %v", err)
@@ -99,8 +103,8 @@ func fetch(url string) ([]MeasurementDto, error) {
 	return measurements, nil
 }
 
-func parseLatest(value string) ([]MeasurementDto, error) {
-	measurements := []MeasurementDto{}
+func parseLatest(value string) ([]dtos.ClimateMeasurement, error) {
+	measurements := []dtos.ClimateMeasurement{}
 	currentHeader := ""
 
 	if strings.TrimSpace(value) == "" {
@@ -125,18 +129,18 @@ func parseLatest(value string) ([]MeasurementDto, error) {
 		if len(parts) >= 2 {
 			temperature, err1 := strconv.ParseFloat(parts[0], 64)
 			humidity, err2 := strconv.ParseFloat(parts[1], 64)
+			timestamp := parts[len(parts)-2] + " " + parts[len(parts)-1]
 
 			if err1 == nil && err2 == nil {
-				measurements = append(measurements, MeasurementDto{FileId: currentHeader, Temperature: float32(temperature), Humidity: float32(humidity)})
+				measurements = append(measurements, dtos.ClimateMeasurement{RoomId: currentHeader, Temperature: float32(temperature), Humidity: float32(humidity), Timestamp: timestamp})
 			}
-
 		}
 	}
 
 	return measurements, nil
 }
 
-func (f *RoomFetcher) send(measurements []MeasurementDto) error {
+func (f *Fetcher) send(measurements []dtos.ClimateMeasurement) error {
 	for _, measurement := range measurements {
 		jsonData, err := json.Marshal(measurement)
 		if err != nil {
@@ -145,7 +149,7 @@ func (f *RoomFetcher) send(measurements []MeasurementDto) error {
 
 		err = f.KafkaWriter.WriteMessages(context.Background(),
 			kafka.Message{
-				Key:   []byte(measurement.FileId),
+				Key:   []byte(measurement.RoomId),
 				Value: jsonData,
 			},
 		)

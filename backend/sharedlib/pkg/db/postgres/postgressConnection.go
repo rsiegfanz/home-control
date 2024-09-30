@@ -20,7 +20,7 @@ func InitDB(config Config) (*gorm.DB, error) {
 		return db, err
 	}
 
-	db.AutoMigrate(&models.Room{})
+	db.AutoMigrate(&models.Room{}, &models.ElectricityMeter{}, &models.ClimateMeasurement{})
 
 	return db, nil
 }
