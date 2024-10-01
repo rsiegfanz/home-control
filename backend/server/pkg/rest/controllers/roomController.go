@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/rs/homecontrol/pkg/rest/presenter"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/presenter"
 )
 
-func HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello World"))
 }
 
-func GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 	rooms := []presenter.RoomPresenter{
 		{1, "Büro"},
 		{2, "Wohnzimmer"},

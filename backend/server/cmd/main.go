@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"log"
+	"os"
+	"os/signal"
+	"time"
 
+	"github.com/rsiegfanz/home-control/backend/server/pkg/rest"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
-	"gorm.io/driver/postgres"
 )
 
 func main() {
-	logPath := "d:\\dev\\docker\\share\\home-control\\server"
+	logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
 	// logPath := "/mnt/d/dev/docker/share"
 	if err := logging.InitLogger("info", "server", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
@@ -28,6 +34,31 @@ func main() {
 	if err != nil {
 		logging.Logger.Fatal("Error opening database", zap.Error(err))
 	}
+
+	server := rest.NewServer(db)
+
+	go func() {
+		log.Println("Start")
+		if err := server.ListenAndServe(); err != nil {
+			logging.Logger.Error("Error starting server", zap.Error(err))
+			log.Println(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	<-c
+
+	logging.Logger.Debug("Stopping server")
+
+	var wait time.Duration
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.Parse()
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+
+	server.Shutdown(ctx)
 
 	logging.Logger.Info("Server stopped")
 }

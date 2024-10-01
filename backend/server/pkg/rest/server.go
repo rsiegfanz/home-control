@@ -6,19 +6,22 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/rs/homecontrol/pkg/rest/controllers"
-	"github.com/rs/homecontrol/pkg/rest/middleware"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/controllers"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/middleware"
+	"gorm.io/gorm"
 )
 
-func NewServer() *http.Server {
+func NewServer(db *gorm.DB) *http.Server {
 	router := mux.NewRouter()
 
-	// router.HandleFunc("/", controllers.HelloWorldHandler)
+	controller := controllers.NewController(db)
 
-	router.HandleFunc("/rooms", controllers.GetRoomsHandler)
+	// router.HandleFunc("/", controller.HelloWorldHandler)
 
-	router.HandleFunc("/rooms/{roomId}/measurements", controllers.GetMeasurementsByRoomIdHandler)
-	router.HandleFunc("/rooms/{roomId}/measurements/latest", controllers.GetLatestMeasurementByRoomIdHandler)
+	router.HandleFunc("/rooms", controller.GetRoomsHandler)
+
+	router.HandleFunc("/rooms/{roomId}/measurements", controller.GetMeasurementsByRoomIdHandler)
+	router.HandleFunc("/rooms/{roomId}/measurements/latest", controller.GetLatestMeasurementByRoomIdHandler)
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./webapp/")))
 

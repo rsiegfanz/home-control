@@ -7,29 +7,16 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/rs/homecontrol/pkg/config"
-	"github.com/rs/homecontrol/pkg/models"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/models"
+	"gorm.io/gorm"
 )
 
-var singleInstance *Repository
-
 type Repository struct {
-	config *config.Config
 }
 
-func CreateInstance(config *config.Config) (*Repository, error) {
-	singleInstance = &Repository{config: config}
+func CreateInstance(db *gorm.DB) (*Repository, error) {
 
-	err := singleInstance.createDataFolder()
-	if err != nil {
-		return nil, err
-	}
-
-	return singleInstance, nil
-}
-
-func GetInstance() *Repository {
-	return singleInstance
+	return &Repository{}, nil
 }
 
 func (r *Repository) SaveLatestAll(measurements []models.Measurement) error {
@@ -40,13 +27,13 @@ func (r *Repository) SaveLatestAll(measurements []models.Measurement) error {
 
 	data := []byte(jsonString)
 
-	return os.WriteFile(r.config.DataPaths.LatestMeasurements, data, 0644)
+	return os.WriteFile("", data, 0644)
 }
 
 func (r *Repository) ReadLatest() ([]models.Measurement, error) {
 	measurements := []models.Measurement{}
 
-	data, err := os.ReadFile(r.config.DataPaths.LatestMeasurements)
+	data, err := os.ReadFile("")
 	if err != nil {
 		return measurements, err
 	}
@@ -76,6 +63,6 @@ func (r *Repository) ReadLatestByRoomId(roomId int) (models.Measurement, error) 
 }
 
 func (r *Repository) createDataFolder() error {
-	dir := filepath.Dir(r.config.DataPaths.LatestMeasurements)
+	dir := filepath.Dir("")
 	return os.MkdirAll(dir, os.ModePerm)
 }

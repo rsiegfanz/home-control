@@ -3,19 +3,18 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/homecontrol/pkg/repository"
-	"github.com/rs/homecontrol/pkg/rest/presenter"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/presenter"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 )
 
-func GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	rooms := []presenter.MeasurementPresenter{
-		{11.5, 50.0},
-		{11.7, 49.2},
-		{11.9, 45.2},
-		{12.7, 65.0},
+		//		{11.5, 50.0},
+		//		{11.7, 49.2},
+		//		{11.9, 45.2},
+		//		{12.7, 65.0},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -23,23 +22,16 @@ func GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rooms)
 }
 
-func GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	roomIdStr := params["roomId"]
+	roomExternalId := params["roomId"]
 
-	roomId, err := strconv.Atoi(roomIdStr)
+	var latestMeasurement models.ClimateMeasurement
+	err := c.DB.Where(&models.ClimateMeasurement{RoomExternalId: roomExternalId}).First(&latestMeasurement).Error
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	repository := repository.GetInstance()
-
-	measurement, err := repository.ReadLatestByRoomId(roomId)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	presenter.RespondWithData(w, presenter.MeasurementPresenter{measurement.Temperature, measurement.Humidity})
+	presenter.RespondWithData(w, presenter.MeasurementPresenter{RecordedAt: latestMeasurement.RecordedAt, Temperature: latestMeasurement.Temperature, Humidity: latestMeasurement.Humidity})
 }
