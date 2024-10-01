@@ -1,15 +1,30 @@
 services:
-  postgres:
-    image: postgres:16.4
-    container_name: postgres_home_control
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-home_control_db}
-      POSTGRES_USER: ${POSTGRES_USER:-home_control_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-home_control_password}
-    volumes:
-      - d:/dev/docker/share/home-control/postgres:/var/lib/postgresql/data
+  #postgres:
+  #  image: postgres:16.4
+  #  container_name: postgres_home_control
+  #  environment:
+  #    POSTGRES_DB: ${POSTGRES_DB:-home_control_db}
+  #    POSTGRES_USER: ${POSTGRES_USER:-home_control_user}
+  #    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-home_control_password}
+  #  volumes:
+  #    - d:/dev/docker/share/home-control/postgres:/var/lib/postgresql/data
+  #  ports:
+  #    - "5432:5432"
+  #  networks:
+  #    - home_control_network
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_DB:-home_control_db}
+      POSTGRES_PASSWORD: ${POSTGRES_USER:-home_control_user}
+      POSTGRES_DB: ${POSTGRES_PASSWORD:-home_control_password}
+    volumes:
+      - d:/dev/docker/share/home-control/timescale:/var/lib/postgresql/data
+      # - timescale_data:/var/lib/postgresql/data
     networks:
       - home_control_network
 
@@ -23,6 +38,8 @@ services:
       - "5050:80"
     networks:
       - home_control_network
+    depends_on:
+      - "timescaledb"
 
   kafka:
     image: confluentinc/cp-kafka:7.4.1

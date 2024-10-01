@@ -14,6 +14,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Ingestor struct {
@@ -54,7 +55,6 @@ func (i *Ingestor) Execute() {
 		if err != nil {
 			logging.Logger.Warn("Invalid timestamp %s / error: %v", zap.String("ts", dto.Timestamp), zap.Error(err))
 		} else {
-			logging.Logger.Info("OK")
 			entity := models.ClimateMeasurement{
 				RoomExternalId: strings.Replace(dto.RoomId, ".werte", "", -1),
 				Temperature:    dto.Temperature,
@@ -62,7 +62,16 @@ func (i *Ingestor) Execute() {
 				RecordedAt:     parsedTime,
 			}
 
-			i.db.Save(&entity)
+			err := i.db.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "recorded_at"}, {Name: "room_external_id"}},
+				DoNothing: true,
+			}).Create(&entity).Error
+			if err != nil {
+				logging.Logger.Warn("Failed to insert measurement", zap.Any("measurement", entity), zap.Error(err))
+			} else {
+				logging.Logger.Info("Upserted", zap.Any("measurement", entity))
+			}
+
 		}
 		err = i.kafkaReader.CommitMessages(context.Background(), message)
 		if err != nil {

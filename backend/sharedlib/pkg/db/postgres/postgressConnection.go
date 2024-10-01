@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -22,5 +24,18 @@ func InitDB(config Config) (*gorm.DB, error) {
 
 	db.AutoMigrate(&models.Room{}, &models.ElectricityMeter{}, &models.ClimateMeasurement{})
 
+	convertToHypertable(db, "climate_measurements", "recorded_at")
+
 	return db, nil
+}
+
+func convertToHypertable(db *gorm.DB, table string, column string) {
+	var result int64
+	db.Raw("SELECT COUNT(1) FROM timescaledb_information.hypertables WHERE hypertable_name = ?", table).Scan(&result)
+
+	if result == 0 {
+		logging.Logger.Info("Converting table %s into hypertable", zap.String("table", table))
+		db.Exec("SELECT create_hypertable(?, ?)", table, column)
+	}
+	logging.Logger.Info("Table %s already converted into hypertable", zap.String("table", table))
 }
