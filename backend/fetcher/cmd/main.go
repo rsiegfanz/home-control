@@ -11,7 +11,6 @@ import (
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
-	// "gorm.io/driver/postgres"
 )
 
 func main() {
@@ -54,8 +53,14 @@ func fetchClimateMeasurements(kafkaConfig kafka.Config, fetcherConfig configs.Fe
 	}
 	defer climateMeasurementsFetcher.Close()
 
+	cnt := uint16(10)
 	for {
-		climateMeasurementsFetcher.FetchLatest()
+		if climateMeasurementsFetcher.FetchLatest(cnt) {
+			cnt = 1
+		} else {
+			cnt++
+			cnt = min(cnt, 1000)
+		}
 
 		time.Sleep(30 * time.Second)
 	}

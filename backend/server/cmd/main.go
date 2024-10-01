@@ -1,28 +1,61 @@
 package main
 
 import (
-	"context"
-	"flag"
 	"log"
-	"os"
-	"os/signal"
-	"path"
-	"time"
 
-	"github.com/rs/homecontrol/pkg/config"
-	"github.com/rs/homecontrol/pkg/httpfetcher"
-	"github.com/rs/homecontrol/pkg/repository"
-	"github.com/rs/homecontrol/pkg/rest"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
+	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
 )
 
+func main() {
+	logPath := "d:\\dev\\docker\\share\\home-control\\server"
+	// logPath := "/mnt/d/dev/docker/share"
+	if err := logging.InitLogger("info", "server", logPath); err != nil {
+		log.Fatalf("Error initializing logger: %v", err)
+	}
+	defer logging.SyncLogger()
+
+	if logging.Logger == nil {
+		log.Fatalf("Logger not initialized")
+	}
+	defer logging.SyncLogger()
+
+	logging.Logger.Info("Server started")
+
+	dbConfig := loadConfigs()
+	db, err := postgres.InitDB(dbConfig)
+	if err != nil {
+		logging.Logger.Fatal("Error opening database", zap.Error(err))
+	}
+
+	logging.Logger.Info("Server stopped")
+}
+
+func loadConfigs() postgres.Config {
+	/*config, err := config.LoadConfig[config.ConfigPostgres]()
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}*/
+	postgresConfig := postgres.Config{}
+	postgresConfig.Host = "localhost"
+	postgresConfig.Port = 5432
+	postgresConfig.DbName = "home_control_db"
+	postgresConfig.User = "home_control_user"
+	postgresConfig.Password = "home_control_password"
+
+	logging.Logger.Debug("Configs loaded")
+
+	return postgresConfig
+}
+
+/*
 func main() {
 	log.Println("Starting server")
 
 	cfg := bootstrapConfig()
 
 	bootstrapRepository(cfg)
-
-	bootstrapHttpFetcher(cfg)
 
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
@@ -79,7 +112,4 @@ func bootstrapRepository(cfg *config.Config) {
 		os.Exit(-3)
 	}
 }
-
-func bootstrapHttpFetcher(cfg *config.Config) {
-	httpfetcher.RunService(cfg.HouseServer.Url, 30)
-}
+*/

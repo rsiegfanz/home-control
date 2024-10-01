@@ -24,7 +24,7 @@ import (
 
 var (
 	latestPath = "/cgi-bin/tou3.cgi"
-	args       = "10"
+	args       = uint16(10)
 )
 
 type Fetcher struct {
@@ -45,18 +45,26 @@ func (f *Fetcher) Close() {
 	defer f.KafkaWriter.Close()
 }
 
-func (f *Fetcher) FetchLatest() {
+func (f *Fetcher) FetchLatest(count uint16) bool {
+	if count == 0 {
+		count = args
+	}
 	url, _ := url.JoinPath(f.Config.Url, latestPath)
-	url = url + "?" + args
+	url = fmt.Sprintf("%s?%d", url, count)
+
 	measurements, err := fetch(url)
 	if err != nil {
 		logging.Logger.Error("Error retrieving data from url", zap.String("url", url), zap.Error(err))
+		return false
 	}
 
 	err = f.send(measurements)
 	if err != nil {
 		logging.Logger.Error("Send error", zap.Error(err))
+		return false
 	}
+
+	return true
 }
 
 func (f *Fetcher) FetchHistory(rooms []models.Room) {

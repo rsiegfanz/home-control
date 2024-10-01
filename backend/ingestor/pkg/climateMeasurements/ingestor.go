@@ -39,7 +39,7 @@ func (i *Ingestor) Close() {
 
 func (i *Ingestor) Execute() {
 	for {
-		message, err := i.kafkaReader.ReadMessage(context.Background())
+		message, err := i.kafkaReader.FetchMessage(context.Background())
 		if err != nil {
 			break
 		}
@@ -69,7 +69,7 @@ func (i *Ingestor) Execute() {
 			if err != nil {
 				logging.Logger.Warn("Failed to insert measurement", zap.Any("measurement", entity), zap.Error(err))
 			} else {
-				logging.Logger.Info("Upserted", zap.Any("measurement", entity))
+				// logging.Logger.Info("Upserted", zap.Any("measurement", entity))
 			}
 
 		}
