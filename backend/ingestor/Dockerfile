@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG APP_NAME=fetcher
+ARG APP_NAME=ingestor
 
 # 1. BUILD
 FROM golang:1.23.1 AS builder
