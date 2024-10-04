@@ -14,8 +14,8 @@ import (
 )
 
 func main() {
-	// logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
-	logPath := "/mnt/d/dev/docker/share"
+	logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
+	// logPath := "/mnt/d/dev/docker/share"
 	if err := logging.InitLogger("info", "fetcher", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
@@ -67,10 +67,41 @@ func fetchClimateMeasurements(kafkaConfig kafka.Config, fetcherConfig configs.Fe
 }
 
 func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
-	/*config, err := config.LoadConfig[config.ConfigPostgres]()
+	if config.IsProd() {
+		return loadConfigsProd()
+	}
+	return loadConfigsDev()
+}
+
+func loadConfigsProd() (postgres.Config, kafka.Config, configs.FetcherConfig) {
+	logging.Logger.Info("Loading PROD environment")
+
+	postgresConfig, err := config.LoadConfig[postgres.Config]()
 	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}*/
+		logging.Logger.Fatal("Error loading postgres config", zap.Error(err))
+	}
+
+	kafkaConfig, err := config.LoadConfig[kafka.Config]()
+	if err != nil {
+		logging.Logger.Fatal("Error loading kafka config", zap.Error(err))
+	}
+
+	// redisConfig := redis.Config{}
+	// redisConfig.Host = "localhost:6379"
+
+	fetcherConfig, err := config.LoadConfig[configs.FetcherConfig]()
+	if err != nil {
+		logging.Logger.Fatal("Error loading config", zap.Error(err))
+	}
+
+	logging.Logger.Debug("Configs loaded")
+
+	return postgresConfig, kafkaConfig, fetcherConfig
+}
+
+func loadConfigsDev() (postgres.Config, kafka.Config, configs.FetcherConfig) {
+	logging.Logger.Warn("Loading DEV environment")
+
 	postgresConfig := postgres.Config{}
 	postgresConfig.Host = "localhost"
 	postgresConfig.Port = 5432
@@ -88,12 +119,6 @@ func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
 	if err != nil {
 		logging.Logger.Fatal("Error loading config", zap.Error(err))
 	}
-
-	log.Printf("LOGGING CONFIG: %v", fetcherConfig)
-
-	//	fetcherConfig := configs.FetcherConfig{}
-	//	fetcherConfig.Url = ""
-	//
 
 	logging.Logger.Debug("Configs loaded")
 
