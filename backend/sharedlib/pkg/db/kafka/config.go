@@ -1,5 +1,5 @@
 package kafka
 
 type Config struct {
-	Host string `env:"HOST"`
+	Host string `env:"KAFKA_HOST"`
 }
