@@ -1,9 +1,11 @@
-# Build Docker image
+# Build & Push Docker image
 
 ## Fetcher
 cd backend/fetcher
 
-docker build -t home-control-fetcher:latest -f backend\fetcher\Dockerfile .
+docker build -t rsiegfanz\home-control-fetcher:latest -f backend\fetcher\Dockerfile .
+
+docker push rsiegfanz/home-control-fetcher:latest
 
 ## ingestor
 
