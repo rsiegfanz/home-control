@@ -31,7 +31,7 @@ COPY --from=builder /app/ingestor/main .
 
 EXPOSE 8080
 
-USER nonroot:nonroot
+# USER nonroot:nonroot
 
 # RUN
-CMD ["./main"]
+CMD ["./main", "-env=prod"]

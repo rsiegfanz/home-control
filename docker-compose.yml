@@ -25,6 +25,12 @@ services:
     volumes:
       - d:/dev/docker/share/home-control/timescale:/var/lib/postgresql/data
       # - timescale_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     networks:
       - home_control_network
 
@@ -47,12 +53,17 @@ services:
     ports:
       - "9092:9092"
       - "9093:9093"
+      - "29092:29092"
+    expose:
+      - "9092"
+      - "9093"
+      - "29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
@@ -73,6 +84,18 @@ services:
     volumes:
       - d:/dev/docker/share/home-control/kafka:/var/lib/kafka/data
       - ./metadata:/var/lib/kafka/kraft
+    #healthcheck:
+    #  test:
+    #    [
+    #      "CMD-SHELL",
+    #      "kafka-topics",
+    #      "--list",
+    #      "--bootstrap-server",
+    #      "kafka:29092",
+    #    ]
+    #  interval: 10s
+    #  timeout: 30s
+    #  retries: 5
     networks:
       - home_control_network
 
@@ -117,11 +140,30 @@ services:
       POSTGRES_HOST: timescaledb
       POSTGRES_PORT: 5432
       POSTGRES_DBNAME: home_control_db
-      POSTGRES:USER: home_control_user
+      POSTGRES_USER: home_control_user
       POSTGRES_PASSWORD: home_control_password
-      KAFKA_HOST: kafka:9092
+      KAFKA_HOST: kafka:29092
     depends_on:
       - kafka
+      - home-control-seeder
+    networks:
+      - home_control_network
+
+  home-control-seeder:
+    image: rsiegfanz/home-control-seeder
+    container_name: home-control-seeder
+    environment:
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_DBNAME: home_control_db
+      POSTGRES_USER: home_control_user
+      POSTGRES_PASSWORD: home_control_password
+      KAFKA_HOST: kafka:29092
+    depends_on:
+      #kafka:
+      #  condition: service_healthy
+      timescaledb:
+        condition: service_healthy
     networks:
       - home_control_network
 

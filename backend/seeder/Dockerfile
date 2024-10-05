@@ -7,7 +7,7 @@ WORKDIR /app
 
 ENV GO111MODULE=on
 
-COPY ./backend/seeder/go.mod ./backend/fetcher/go.sum ./seeder/
+COPY ./backend/seeder/go.mod ./backend/seeder/go.sum ./seeder/
 COPY ./backend/seeder/cmd ./seeder/cmd
 COPY ./backend/seeder/pkg ./seeder/pkg
 
@@ -31,7 +31,7 @@ COPY --from=builder /app/seeder/main .
 
 EXPOSE 8080
 
-USER nonroot:nonroot
+# USER nonroot:nonroot
 
 # RUN
-CMD ["./main"]
+CMD ["./main", "-env=prod"]
