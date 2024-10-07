@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -23,8 +22,10 @@ import (
 )
 
 var (
-	latestPath = "/cgi-bin/tou3.cgi"
-	args       = uint16(10)
+	climateMeasurementLatestPath  = "/cgi-bin/tou3.cgi"
+	climateMeasurementHistoryPath = "cgi-bin/temperaturen"
+	args                          = uint32(10)
+	max                           = uint32(999999)
 )
 
 type Fetcher struct {
@@ -45,11 +46,12 @@ func (f *Fetcher) Close() {
 	defer f.KafkaWriter.Close()
 }
 
-func (f *Fetcher) FetchLatest(count uint16) bool {
+func (f *Fetcher) FetchLatest(count uint32) bool {
 	if count == 0 {
 		count = args
 	}
-	url, _ := url.JoinPath(f.Config.Url, latestPath)
+	count = min(count, max)
+	url, _ := url.JoinPath(f.Config.Url, climateMeasurementLatestPath)
 	url = fmt.Sprintf("%s?%d", url, count)
 
 	measurements, err := fetch(url)
@@ -69,12 +71,18 @@ func (f *Fetcher) FetchLatest(count uint16) bool {
 
 func (f *Fetcher) FetchHistory(rooms []models.Room) {
 	for _, room := range rooms {
-		url, _ := url.JoinPath(f.Config.Url, room.ExternalId+".werte")
+
+		url, _ := url.JoinPath(f.Config.Url, climateMeasurementHistoryPath, room.ExternalId)
+
+		logging.Logger.Info("Opening url %s for room %s", zap.String("URL", url), zap.String("room", room.ExternalId))
+
 		measurements, err := fetch(url)
 		if err != nil {
 			logging.Logger.Error("Error retrieving data from url", zap.String("url", url), zap.Error(err))
 			continue
 		}
+
+		logging.Logger.Info("Got measurements cnt %d", zap.Int("CNT", len(measurements)))
 
 		err = f.send(measurements)
 		if err != nil {
@@ -86,7 +94,7 @@ func (f *Fetcher) FetchHistory(rooms []models.Room) {
 func fetch(url string) ([]dtos.ClimateMeasurement, error) {
 	measurements := []dtos.ClimateMeasurement{}
 
-	log.Printf("CALLING URL %v", url)
+	logging.Logger.Sugar().Debugf("CALLING URL %v", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return measurements, fmt.Errorf("HTTP error: %v", err)
@@ -149,22 +157,27 @@ func parseLatest(value string) ([]dtos.ClimateMeasurement, error) {
 }
 
 func (f *Fetcher) send(measurements []dtos.ClimateMeasurement) error {
-	for _, measurement := range measurements {
+	if len(measurements) <= 0 {
+		return nil
+	}
+
+	msgs := make([]kafka.Message, len(measurements))
+
+	logging.Logger.Sugar().Debugf("Sending to kafka cnt %d", len(msgs))
+
+	for idx, measurement := range measurements {
 		jsonData, err := json.Marshal(measurement)
 		if err != nil {
 			return fmt.Errorf("Error marshaling data %v", err)
 		}
 
-		err = f.KafkaWriter.WriteMessages(context.Background(),
-			kafka.Message{
-				Key:   []byte(measurement.RoomId),
-				Value: jsonData,
-			},
-		)
-		if err != nil {
-			return fmt.Errorf("Error writing to kafka %v", err)
+		msgs[idx] = kafka.Message{
+			Key:   []byte(measurement.RoomId),
+			Value: jsonData,
 		}
 	}
+
+	f.KafkaWriter.WriteMessages(context.Background(), msgs...)
 
 	return nil
 }

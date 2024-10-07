@@ -21,39 +21,30 @@ func main() {
 	}
 	defer logging.SyncLogger()
 
-	if logging.Logger == nil {
-		log.Fatalf("Logger not initialized")
-	}
-	defer logging.SyncLogger()
-
 	logging.Logger.Info("Fetcher started")
 
 	_, kafkaConfig, fetcherConfig := loadConfigs()
-	/*
-		db, err := postgres.InitDB(dbConfig)
-		if err != nil {
-			logging.Logger.Fatal("Error opening database", zap.Error(err))
-		}
 
-		dbRooms := []models.Room{}
-		db.Find(&dbRooms)
-	*/
-	// logging.Logger.Sugar().Infof("rooms", rooms)
-	//
-
-	fetchClimateMeasurements(kafkaConfig, fetcherConfig)
+	switch fetcherConfig.Modus {
+	case "climate_current":
+		fetchClimateMeasurementsLatest(kafkaConfig, fetcherConfig)
+	case "climate_history":
+		fetchClimateMeasurementsAll(kafkaConfig, fetcherConfig)
+	default:
+		logging.Logger.Error("invalid or missing modus %s", zap.String("modus", fetcherConfig.Modus))
+	}
 
 	logging.Logger.Info("Fetcher stopped")
 }
 
-func fetchClimateMeasurements(kafkaConfig kafka.Config, fetcherConfig configs.FetcherConfig) {
+func fetchClimateMeasurementsLatest(kafkaConfig kafka.Config, fetcherConfig configs.FetcherConfig) {
 	climateMeasurementsFetcher, err := climateMeasurements.NewFetcher(fetcherConfig, kafkaConfig)
 	if err != nil {
 		logging.Logger.Fatal("Error instantiating room fetcher", zap.Error(err))
 	}
 	defer climateMeasurementsFetcher.Close()
 
-	cnt := uint16(10)
+	cnt := uint32(10)
 	for {
 		if climateMeasurementsFetcher.FetchLatest(cnt) {
 			cnt = 1
@@ -65,6 +56,34 @@ func fetchClimateMeasurements(kafkaConfig kafka.Config, fetcherConfig configs.Fe
 		time.Sleep(30 * time.Second)
 	}
 }
+
+func fetchClimateMeasurementsAll(kafkaConfig kafka.Config, fetcherConfig configs.FetcherConfig) {
+	climateMeasurementsFetcher, err := climateMeasurements.NewFetcher(fetcherConfig, kafkaConfig)
+	if err != nil {
+		logging.Logger.Fatal("Error instantiating room fetcher", zap.Error(err))
+	}
+	defer climateMeasurementsFetcher.Close()
+
+	climateMeasurementsFetcher.FetchLatest(99999)
+}
+
+// func fetchClimateMeasurementsHistory(kafkaConfig kafka.Config, dbConfig postgres.Config, fetcherConfig configs.FetcherConfig) {
+// 	climateMeasurementsFetcher, err := climateMeasurements.NewFetcher(fetcherConfig, kafkaConfig)
+// 	if err != nil {
+// 		logging.Logger.Fatal("Error instantiating room fetcher", zap.Error(err))
+// 	}
+// 	defer climateMeasurementsFetcher.Close()
+
+// 	db, err := postgres.InitDB(dbConfig)
+// 	if err != nil {
+// 		logging.Logger.Fatal("Error opening postgres database", zap.Error(err))
+// 	}
+
+// 	rooms := []models.Room{}
+// 	db.Find(&rooms)
+
+// 	climateMeasurementsFetcher.FetchHistory(rooms)
+// }
 
 func loadConfigs() (postgres.Config, kafka.Config, configs.FetcherConfig) {
 	if config.IsProd() {

@@ -137,6 +137,7 @@ services:
     container_name: home-control-fetcher
     environment:
       URL: xx
+      MODUS: climate_current
       POSTGRES_HOST: timescaledb
       POSTGRES_PORT: 5432
       POSTGRES_DBNAME: home_control_db
@@ -146,6 +147,24 @@ services:
     depends_on:
       - kafka
       - home-control-seeder
+    networks:
+      - home_control_network
+
+  home-control-ingestor:
+    image: rsiegfanz/home-control-ingestor
+    container_name: home-control-ingestor
+    environment:
+      POSTGRES_HOST: timescaledb
+      POSTGRES_PORT: 5432
+      POSTGRES_DBNAME: home_control_db
+      POSTGRES_USER: home_control_user
+      POSTGRES_PASSWORD: home_control_password
+      KAFKA_HOST: kafka:29092
+    depends_on:
+      #kafka:
+      #  condition: service_healthy
+      timescaledb:
+        condition: service_healthy
     networks:
       - home_control_network
 

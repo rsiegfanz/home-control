@@ -8,9 +8,11 @@ var groupId = "rs"
 
 func InitWriter(config Config, topic Topic) (*kafka.Writer, error) {
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  []string{config.Host},
-		Topic:    string(topic),
-		Balancer: &kafka.LeastBytes{},
+		Brokers:    []string{config.Host},
+		Topic:      string(topic),
+		Balancer:   &kafka.LeastBytes{},
+		BatchSize:  1000,
+		BatchBytes: 10e6,
 	})
 
 	// defer writer.Close()

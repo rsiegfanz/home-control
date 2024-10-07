@@ -15,15 +15,10 @@ import (
 )
 
 func main() {
-	logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
+	// logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
 	// logPath := "/mnt/d/dev/docker/share"
-	if err := logging.InitLogger("info", "server", logPath); err != nil {
+	if err := logging.InitLogger("info", "server", ""); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
-	}
-	defer logging.SyncLogger()
-
-	if logging.Logger == nil {
-		log.Fatalf("Logger not initialized")
 	}
 	defer logging.SyncLogger()
 

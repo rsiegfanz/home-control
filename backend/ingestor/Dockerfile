@@ -7,7 +7,7 @@ WORKDIR /app
 
 ENV GO111MODULE=on
 
-COPY ./backend/ingestor/go.mod ./backend/fetcher/go.sum ./ingestor/
+COPY ./backend/ingestor/go.mod ./backend/ingestor/go.sum ./ingestor/
 COPY ./backend/ingestor/cmd ./ingestor/cmd
 COPY ./backend/ingestor/pkg ./ingestor/pkg
 
