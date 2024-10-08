@@ -9,15 +9,19 @@ import (
 	"time"
 
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 )
 
 func main() {
-	// logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
-	// logPath := "/mnt/d/dev/docker/share"
-	if err := logging.InitLogger("info", "server", ""); err != nil {
+	logPath := "/var/log"
+	if !config.IsProd() {
+		logPath = "d:\\dev\\docker\\share\\home-control\\promtail"
+	}
+
+	if err := logging.InitLogger("info", "server", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
 	defer logging.SyncLogger()

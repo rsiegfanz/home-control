@@ -144,6 +144,8 @@ services:
       POSTGRES_USER: home_control_user
       POSTGRES_PASSWORD: home_control_password
       KAFKA_HOST: kafka:29092
+    volumes:
+      - d:/dev/docker/share/home-control/promtail:/var/log
     depends_on:
       - kafka
       - home-control-seeder
@@ -160,6 +162,8 @@ services:
       POSTGRES_USER: home_control_user
       POSTGRES_PASSWORD: home_control_password
       KAFKA_HOST: kafka:29092
+    volumes:
+      - d:/dev/docker/share/home-control/promtail:/var/log
     depends_on:
       #kafka:
       #  condition: service_healthy
@@ -178,6 +182,8 @@ services:
       POSTGRES_USER: home_control_user
       POSTGRES_PASSWORD: home_control_password
       KAFKA_HOST: kafka:29092
+    volumes:
+      - d:/dev/docker/share/home-control/promtail:/var/log
     depends_on:
       #kafka:
       #  condition: service_healthy

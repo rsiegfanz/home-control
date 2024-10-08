@@ -13,8 +13,11 @@ import (
 )
 
 func main() {
-	//logPath := "d:\\dev\\docker\\share\\home-control\\promtail"
-	if err := logging.InitLogger("info", "seeder", ""); err != nil {
+	logPath := "/var/log"
+	if !config.IsProd() {
+		logPath = "d:\\dev\\docker\\share\\home-control\\promtail"
+	}
+	if err := logging.InitLogger("info", "seeder", logPath); err != nil {
 		log.Fatalf("Error initializing logger: %v", err)
 	}
 	defer logging.SyncLogger()
