@@ -6,12 +6,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/rsiegfanz/home-control/backend/server/pkg/configs"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/controllers"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/middleware"
 	"gorm.io/gorm"
 )
 
-func NewServer(db *gorm.DB) *http.Server {
+func NewServer(serverConfig configs.ServerConfig, db *gorm.DB) *http.Server {
 	router := mux.NewRouter()
 
 	controller := controllers.NewController(db)
@@ -31,7 +32,7 @@ func NewServer(db *gorm.DB) *http.Server {
 	handler := cors.Handler(router)
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         serverConfig.Adress,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
