@@ -16,3 +16,6 @@ docker build -t rsiegfanz/home-control-seeder:latest -f backend/seeder/Dockerfil
 docker push rsiegfanz/home-control-seeder:latest
 
 ## server (including frontend)
+docker build -t rsiegfanz/home-control-server:latest -f backend/server/Dockerfile .
+
+docker push rsiegfanz/home-control-server:latest

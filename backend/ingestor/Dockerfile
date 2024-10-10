@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # 1. BUILD
-FROM golang:1.23.1 AS builder
+FROM golang:1.23.1 AS builder-backend
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
-COPY --from=builder /app/ingestor/main .
+COPY --from=builder-backend /app/ingestor/main .
 
 EXPOSE 8080
 

@@ -7,7 +7,6 @@ require (
 	github.com/rs/cors v1.10.1
 	github.com/rsiegfanz/home-control/backend/sharedlib v0.0.0
 	go.uber.org/zap v1.27.0
-	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.12
 )
 
@@ -22,6 +21,7 @@ require (
 	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
+	gorm.io/driver/postgres v1.5.9 // indirect
 )
 
 replace github.com/rsiegfanz/home-control/backend/sharedlib => ../sharedlib

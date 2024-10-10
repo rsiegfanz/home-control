@@ -27,7 +27,7 @@ func (c *Controller) GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, 
 	roomExternalId := params["roomId"]
 
 	var latestMeasurement models.ClimateMeasurement
-	err := c.DB.Where(&models.ClimateMeasurement{RoomExternalId: roomExternalId}).First(&latestMeasurement).Error
+	err := c.DB.Where(&models.ClimateMeasurement{RoomExternalId: roomExternalId}).Order("recorded_at DESC").First(&latestMeasurement).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
