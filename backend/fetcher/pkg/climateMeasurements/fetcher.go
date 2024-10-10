@@ -143,8 +143,15 @@ func parseLatest(value string) ([]dtos.ClimateMeasurement, error) {
 
 		parts := strings.Fields(line)
 		if len(parts) >= 2 {
-			temperature, err1 := strconv.ParseFloat(parts[0], 64)
-			humidity, err2 := strconv.ParseFloat(parts[1], 64)
+			temperatureClm := 0
+			humidityClm := 1
+			if currentHeader == "funkbme280" {
+				humidityClm = 0
+				temperatureClm = 1
+			}
+
+			temperature, err1 := strconv.ParseFloat(parts[temperatureClm], 64)
+			humidity, err2 := strconv.ParseFloat(parts[humidityClm], 64)
 			timestamp := parts[len(parts)-2] + " " + parts[len(parts)-1]
 
 			if err1 == nil && err2 == nil {
