@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RoomsService } from '../../_libs/house/backend/rooms.service';
+import { RoomsService } from '../../_libs/house/backend/services/rooms.service';
 import { DashboardRoomsComponent } from './dashboard-rooms/dashboard-rooms.component';
 
 @Component({

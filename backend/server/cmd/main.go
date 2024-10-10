@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/rsiegfanz/home-control/backend/server/pkg/configs"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
@@ -28,13 +29,13 @@ func main() {
 
 	logging.Logger.Info("Server started")
 
-	dbConfig := loadConfigs()
+	dbConfig, serverConfig := loadConfigs()
 	db, err := postgres.InitDB(dbConfig)
 	if err != nil {
 		logging.Logger.Fatal("Error opening database", zap.Error(err))
 	}
 
-	server := rest.NewServer(db)
+	server := rest.NewServer(serverConfig, db)
 
 	go func() {
 		log.Println("Start")
@@ -62,14 +63,14 @@ func main() {
 	logging.Logger.Info("Server stopped")
 }
 
-func loadConfigs() postgres.Config {
+func loadConfigs() (postgres.Config, configs.ServerConfig) {
 	if config.IsProd() {
 		return loadConfigsProd()
 	}
 	return loadConfigsDev()
 }
 
-func loadConfigsProd() postgres.Config {
+func loadConfigsProd() (postgres.Config, configs.ServerConfig) {
 	logging.Logger.Info("Loading PROD environment")
 
 	postgresConfig, err := config.LoadConfig[postgres.Config]()
@@ -77,12 +78,17 @@ func loadConfigsProd() postgres.Config {
 		logging.Logger.Fatal("Error loading postgres config", zap.Error(err))
 	}
 
+	serverConfig, err := config.LoadConfig[configs.ServerConfig]()
+	if err != nil {
+		logging.Logger.Fatal("Error loading config", zap.Error(err))
+	}
+
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig
+	return postgresConfig, serverConfig
 }
 
-func loadConfigsDev() postgres.Config {
+func loadConfigsDev() (postgres.Config, configs.ServerConfig) {
 	logging.Logger.Warn("Loading DEV environment")
 
 	postgresConfig := postgres.Config{}
@@ -92,7 +98,10 @@ func loadConfigsDev() postgres.Config {
 	postgresConfig.User = "home_control_user"
 	postgresConfig.Password = "home_control_password"
 
+	serverConfig := configs.ServerConfig{}
+	serverConfig.Adress = "0.0.0.0:8080"
+
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig
+	return postgresConfig, serverConfig
 }

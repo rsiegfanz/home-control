@@ -1,25 +1,26 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/presenter"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 )
 
-func (c *Controller) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World"))
-}
-
 func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
-	rooms := []presenter.RoomPresenter{
-		{1, "Büro"},
-		{2, "Wohnzimmer"},
-		{3, "Küche"},
-		{4, "Schlafzimmer"},
+
+	var rooms []models.Room
+	err := c.DB.Find(&rooms).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(rooms)
+	roomsPresenter := make([]presenter.RoomPresenter, len(rooms))
+
+	for idx, room := range rooms {
+		roomsPresenter[idx] = presenter.RoomPresenter{Id: room.Id, ExternalId: room.ExternalId, Name: room.Name}
+	}
+
+	presenter.RespondWithData(w, roomsPresenter)
 }

@@ -1,5 +1,5 @@
 <nav>
-    <ul>
-        <li *ngFor="let room of rooms"><app-nav-bar-room [room]="room"></app-nav-bar-room></li>
+    <ul *ngIf="roomsService.rooms !== undefined">
+        <li *ngFor="let room of roomsService.rooms"><app-nav-bar-room [room]="room"></app-nav-bar-room></li>
     </ul>
 </nav>

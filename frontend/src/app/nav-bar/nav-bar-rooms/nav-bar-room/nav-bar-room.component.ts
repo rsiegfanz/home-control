@@ -3,10 +3,10 @@ import { Component, Input } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { Subscription, interval, startWith, switchMap } from 'rxjs';
 import { ApiResponse } from '../../../_libs/backend/models/api-response.model';
-import { MeasurementService } from '../../../_libs/house/backend/measurement.service';
 import Measurement from '../../../_libs/house/models/measurement.model';
 import Room from '../../../_libs/house/models/room.model';
 import { IconDataprovider } from '../../../_libs/icons/icon.dataprovider';
+import { MeasurementService } from '../../../_libs/house/backend/services/measurement.service';
 
 @Component({
     selector: 'app-nav-bar-room',
@@ -33,13 +33,14 @@ export class NavBarRoomComponent {
     }
 
     getTemperature() {
+        console.log(`MEASUREMENT FOR ROOM ${JSON.stringify(this.room)}}`);
         this._timeInterval = interval(this.INTERVAL)
             .pipe(
                 startWith(0),
-                switchMap(() => this._measurementService.getLatestByRoomId(this.room.id)),
+                switchMap(() => this._measurementService.getLatestByExternalRoomId(this.room.externalRoomId)),
             )
             .subscribe((apiResponse: ApiResponse<Measurement>) => {
-                if (apiResponse.isError) {
+                if (!apiResponse.isSuccessful) {
                     return;
                 }
 

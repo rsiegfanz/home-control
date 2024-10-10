@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { MeasurementService } from '../../../_libs/house/backend/measurement.service';
+import { MeasurementService } from '../../../_libs/house/backend/services/measurement.service';
 import Room from '../../../_libs/house/models/room.model';
 
 @Component({

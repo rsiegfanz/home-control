@@ -9,10 +9,6 @@ export const routes: Routes = [
         loadChildren: () => import('./dashboard/dashboard.module').then((m) => m.DashboardModule),
     },
     {
-        path: 'chat',
-        loadChildren: () => import('./chat/chat.module').then((m) => m.ChatModule),
-    },
-    {
         path: '**',
         loadComponent: () => import('./page-not-found/page-not-found.component').then((m) => m.PageNotFoundComponent),
     },

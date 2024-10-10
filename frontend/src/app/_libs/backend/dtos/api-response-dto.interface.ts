@@ -1,7 +1,5 @@
-import { IBaseResponseDto } from './base-response-dto.interface';
-
-export interface IApiResponseDto<TBaseDto extends IBaseResponseDto> {
-    messages: string[];
-    data: TBaseDto | undefined;
-    status: number;
+export interface IApiResponseDto<TDto> {
+    messages: string[] | undefined;
+    data: TDto | TDto[] | undefined;
+    status: number | undefined;
 }
