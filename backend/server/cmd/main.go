@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	. "github.com/rsiegfanz/home-control/backend/server/pkg"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/configs"
-	"github.com/rsiegfanz/home-control/backend/server/pkg/rest"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
@@ -35,7 +35,7 @@ func main() {
 		logging.Logger.Fatal("Error opening database", zap.Error(err))
 	}
 
-	server := rest.NewServer(serverConfig, db)
+	server := NewServer(serverConfig, db)
 
 	go func() {
 		log.Println("Start")

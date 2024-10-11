@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 )
 
-func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *RestHandler) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var rooms []models.Room
 	err := c.DB.Find(&rooms).Error

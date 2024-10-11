@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 )
 
-func (c *Controller) GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+func (c *RestHandler) GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	rooms := []presenter.MeasurementPresenter{
 		//		{11.5, 50.0},
 		//		{11.7, 49.2},
@@ -22,7 +22,7 @@ func (c *Controller) GetMeasurementsByRoomIdHandler(w http.ResponseWriter, r *ht
 	json.NewEncoder(w).Encode(rooms)
 }
 
-func (c *Controller) GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
+func (c *RestHandler) GetLatestMeasurementByRoomIdHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	roomExternalId := params["roomId"]
 

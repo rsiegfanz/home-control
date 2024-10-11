@@ -1,0 +1,16 @@
+# Define the schema
+type Query {
+    climateData(
+        startDate: String!
+        endDate: String!
+        roomExternalId: String!
+    ): [ClimateMeasurement]
+}
+
+type ClimateMeasurement {
+    id: ID!
+    recordedAt: String!
+    roomExternalId: String!
+    temperature: Float!
+    humidity: Float!
+}
