@@ -7,12 +7,14 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/graphql/resolvers"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/graphql/schemas"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
+	"go.uber.org/zap"
 )
 
 func NewGraphQLHandler(queryResolver *resolvers.QueryResolver) http.HandlerFunc {
 	fields := graphql.Fields{
-		"climateData": &graphql.Field{
-			Type:        graphql.NewList(schemas.ClimateMeasurementType),
+		"climateMeasurements": &graphql.Field{
+			Type:        graphql.NewList(schemas.ClimateMeasurementSchema),
 			Description: "Get climate data for a specific room and time period",
 			Args: graphql.FieldConfigArgument{
 				"startDate": &graphql.ArgumentConfig{
@@ -36,17 +38,31 @@ func NewGraphQLHandler(queryResolver *resolvers.QueryResolver) http.HandlerFunc 
 
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
 	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
-	schema, _ := graphql.NewSchema(schemaConfig)
+	schema, err := graphql.NewSchema(schemaConfig)
+	if err != nil {
+		logging.Logger.Panic("invalid schema", zap.Error(err))
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var params struct {
-			Query string `json:"query"`
+			Query         string                 `json:"query"`
+			OperationName string                 `json:"operationName"`
+			Variables     map[string]interface{} `json:"variables"`
 		}
-		_ = json.NewDecoder(r.Body).Decode(&params)
+
+		err := json.NewDecoder(r.Body).Decode(&params)
+		if err != nil {
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
+
 		result := graphql.Do(graphql.Params{
-			Schema:        schema,
-			RequestString: params.Query,
+			Schema:         schema,
+			RequestString:  params.Query,
+			VariableValues: params.Variables,
 		})
+
+		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	}
 }

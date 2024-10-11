@@ -2,7 +2,7 @@ package schemas
 
 import "github.com/graphql-go/graphql"
 
-var ClimateMeasurementType = graphql.NewObject(
+var ClimateMeasurementSchema = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "ClimateMeasurement",
 		Fields: graphql.Fields{
