@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
+import { MeasurementService } from '../../_libs/house/backend/services/measurement.service';
+import Measurement from '../../_libs/house/models/measurement.model';
 
 @Component({
     selector: 'app-climate-measurements-home',
@@ -10,31 +12,24 @@ import gql from 'graphql-tag';
     styleUrl: './climate-measurements-home.component.scss',
 })
 export class ClimateMeasurementsHomeComponent implements OnInit {
-    climateData: any[] | undefined;
+    climateData: Measurement[] | undefined;
 
-    constructor(private apollo: Apollo) {}
+    constructor(
+        private apollo: Apollo,
+        private _measurementService: MeasurementService,
+    ) {}
 
     ngOnInit() {
-        this.apollo
-            .watchQuery({
-                query: gql`
-                    query GetClimateMeasurements($startDate: String!, $endDate: String!, $roomExternalId: String!) {
-                        climateMeasurements(startDate: $startDate, endDate: $endDate, roomExternalId: $roomExternalId) {
-                            recordedAt
-                            roomExternalId
-                            temperature
-                            humidity
-                        }
-                    }
-                `,
-                variables: {
-                    startDate: '2024-10-11T00:00:00Z',
-                    endDate: '2024-10-11T23:59:59Z',
-                    roomExternalId: 'e868e758ea4f',
-                },
-            })
-            .valueChanges.subscribe((result: any) => {
-                this.climateData = result?.data?.climateMeasurements;
-            });
+        const startDate = '2024-10-11T00:00:00Z';
+        const endDate = '2024-10-11T23:59:59Z';
+        const roomExternalId = 'e868e758ea4f';
+
+        this.query(startDate, endDate, roomExternalId);
+    }
+
+    query(startDate: string, endDate: string, roomExternalId: string) {
+        this._measurementService.query(startDate, endDate, roomExternalId).subscribe((result) => {
+            this.climateData = result;
+        });
     }
 }
