@@ -192,25 +192,25 @@ services:
     networks:
       - home_control_network
 
-  home-control-server:
-    image: rsiegfanz/home-control-server
-    container_name: home-control-server
-    environment:
-      POSTGRES_HOST: timescaledb
-      POSTGRES_PORT: 5432
-      POSTGRES_DBNAME: home_control_db
-      POSTGRES_USER: home_control_user
-      POSTGRES_PASSWORD: home_control_password
-      ADDRESS: 0.0.0.0:8080
-    ports:
-      - "8080:8080"
-    volumes:
-      - d:/dev/docker/share/home-control/promtail:/var/log
-    depends_on:
-      timescaledb:
-        condition: service_healthy
-    networks:
-      - home_control_network
+  # home-control-server:
+  #   image: rsiegfanz/home-control-server
+  #   container_name: home-control-server
+  #   environment:
+  #     POSTGRES_HOST: timescaledb
+  #     POSTGRES_PORT: 5432
+  #     POSTGRES_DBNAME: home_control_db
+  #     POSTGRES_USER: home_control_user
+  #     POSTGRES_PASSWORD: home_control_password
+  #     ADDRESS: 0.0.0.0:8080
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - d:/dev/docker/share/home-control/promtail:/var/log
+  #   depends_on:
+  #     timescaledb:
+  #       condition: service_healthy
+  #   networks:
+  #     - home_control_network
 
 networks:
   home_control_network:
