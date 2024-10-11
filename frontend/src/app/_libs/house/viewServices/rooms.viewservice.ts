@@ -12,10 +12,10 @@ export class RoomsViewService {
     constructor(private _roomsService: RoomsService) {
         this.rooms = undefined;
 
-        this._roomsService.all().subscribe((apiResonse: ApiResponse<Room[]>) => {
-            if (apiResonse.isSuccessful) {
-                this.rooms = apiResonse.data;
-            }
-        });
+        // this._roomsService.all().subscribe((apiResonse: ApiResponse<Room[]>) => {
+        //     if (apiResonse.isSuccessful) {
+        //         this.rooms = apiResonse.data;
+        //     }
+        // });
     }
 }

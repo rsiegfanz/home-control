@@ -9,6 +9,10 @@ export const routes: Routes = [
         loadChildren: () => import('./dashboard/dashboard.module').then((m) => m.DashboardModule),
     },
     {
+        path: 'climateMeasurements',
+        loadChildren: () => import('./climate-measurements/climate-measurements.module').then((m) => m.ClimateMeasurementsModule),
+    },
+    {
         path: '**',
         loadComponent: () => import('./page-not-found/page-not-found.component').then((m) => m.PageNotFoundComponent),
     },
