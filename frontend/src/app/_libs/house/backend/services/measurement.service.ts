@@ -49,6 +49,7 @@ export class MeasurementService extends BackendService<Measurement> {
             .valueChanges.pipe(
                 map((result: IApiGraphQLResponseDto) => {
                     if (!result || !result.data) {
+                        // TODO: error handling/message
                         console.log(`GraphQL Error: ${result}`);
                     }
 

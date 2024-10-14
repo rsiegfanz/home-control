@@ -33,7 +33,6 @@ export class NavBarRoomComponent {
     }
 
     getTemperature() {
-        console.log(`MEASUREMENT FOR ROOM ${JSON.stringify(this.room)}}`);
         this._timeInterval = interval(this.INTERVAL)
             .pipe(
                 startWith(0),

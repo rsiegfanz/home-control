@@ -43,3 +43,64 @@ body {
 .flex-spacer {
     flex: 1 1 auto;
 }
+
+.p-dropdown,
+.p-dropdown-panel {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-label) !important;
+}
+
+.p-calendar,
+.p-dropdown {
+    /* width: 100%; */
+    margin-bottom: 1rem;
+}
+
+.p-field {
+    margin-bottom: 1rem;
+}
+
+.p-field label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.p-button {
+    background-color: var(--color-primary) !important;
+    color: var(--color-label) !important;
+}
+
+.p-calendar {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-label) !important;
+
+    .p-inputtext {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-label) !important;
+    }
+}
+
+.p-datepicker {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-label) !important;
+
+    .p-datepicker-header,
+    .p-datepicker-calendar-container {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-label) !important;
+    }
+
+    .p-datepicker-calendar {
+        td {
+            > span,
+            > button {
+                background-color: var(--color-secondary) !important;
+                color: var(--color-label) !important;
+
+                &:hover {
+                    background-color: var(--color-primary) !important;
+                }
+            }
+        }
+    }
+}

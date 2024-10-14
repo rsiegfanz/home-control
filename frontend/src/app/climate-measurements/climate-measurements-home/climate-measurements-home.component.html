@@ -1,5 +1,37 @@
-<p>climate-measurements-home works!</p>
-<!-- <p>{{ climateData }}</p> -->
-<div class="card">
+<div class="card" *ngIf="roomViewService.loadingStatus() == 0 || roomViewService.loadingStatus() == 1">
+    <app-loading-data-spinner [loadingText]="loadingRoomsText" [errorText]="errorRoomsText"></app-loading-data-spinner>
+</div>
+
+<div class="card" *ngIf="roomViewService.loadingStatus() == 2">
+    <div class="input-container">
+        <div class="input-item">
+            <p-dropdown [options]="roomViewService.groupedRoomsForDropdown()" (onChange)="onRoomChange($event)" placeholder="Raum auswählen" [group]="true">
+                <ng-template let-group pTemplate="group">
+                    <div class="flex align-items-center">
+                        <span>{{ group.label }}</span>
+                    </div>
+                </ng-template>
+            </p-dropdown>
+        </div>
+
+        <div class="input-item">
+            <label for="startDate">Startdatum</label>
+            <p-calendar id="startDate" [(ngModel)]="startDate" (onSelect)="onDateChange()" [showTime]="false" [showSeconds]="false" dateFormat="dd.mm.yy"></p-calendar>
+        </div>
+
+        <div class="input-item">
+            <label for="endDate">Enddatum</label>
+            <p-calendar id="endDate" [(ngModel)]="endDate" (onSelect)="onDateChange()" [showTime]="false" [showSeconds]="false" dateFormat="dd.mm.yy"></p-calendar>
+        </div>
+    </div>
+</div>
+
+<div class="card" *ngIf="roomViewService.loadingStatus() == 2 && loadingStatusClimateMeasurements() == 1">
+    <app-loading-data-spinner [loadingText]="loadingClimateMeasurementsText" [errorText]="loadingClimateMeasurementsError"></app-loading-data-spinner>
+</div>
+
+<div class="card" *ngIf="roomViewService.loadingStatus() == 2 && loadingStatusClimateMeasurements() == 2">
     <p-chart type="line" [data]="chartData" [options]="chartOptions" />
 </div>
+
+<div class="card" *ngIf="loadingStatusClimateMeasurements() == 3"> Keine Daten vorhanden! </div>
