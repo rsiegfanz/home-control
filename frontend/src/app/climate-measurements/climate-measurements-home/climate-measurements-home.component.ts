@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
 import { MeasurementService } from '../../_libs/house/backend/services/measurement.service';
@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { LoadingStatus } from '../../_libs/house/enums/loading-status.enum';
 import { CalendarModule } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-climate-measurements-home',
@@ -21,12 +22,14 @@ import { FormsModule } from '@angular/forms';
     templateUrl: './climate-measurements-home.component.html',
     styleUrl: './climate-measurements-home.component.scss',
 })
-export class ClimateMeasurementsHomeComponent implements OnInit {
+export class ClimateMeasurementsHomeComponent implements OnInit, OnDestroy {
     public chartData: any;
 
     public chartOptions: any;
 
     public climateData: Measurement[] | undefined;
+
+    private measurementSubscription: Subscription | null = null;
 
     public startDate: Date;
     public endDate: Date;
@@ -43,7 +46,6 @@ export class ClimateMeasurementsHomeComponent implements OnInit {
 
     constructor(
         public roomViewService: RoomsViewService,
-        private apollo: Apollo,
         private _measurementService: MeasurementService,
     ) {
         const today = new Date();
@@ -53,13 +55,20 @@ export class ClimateMeasurementsHomeComponent implements OnInit {
 
     ngOnInit() {}
 
-    public onRoomChange(event: any): void {
+    ngOnDestroy() {
+        if (this.measurementSubscription) {
+            this.measurementSubscription.unsubscribe();
+        }
+    }
+
+    public onRoomChange(event: { value: Room }): void {
         if (!event || !event.value) {
             return;
         }
 
         this.selectedRoom = event.value;
-        this.query(this.startDate, this.endDate, this.selectedRoom!.externalRoomId);
+        this._query(this.startDate, this.endDate, this.selectedRoom!.externalRoomId);
+        this._subscribeToMeasurements(this.selectedRoom.externalRoomId);
     }
 
     public onDateChange(): void {
@@ -73,28 +82,54 @@ export class ClimateMeasurementsHomeComponent implements OnInit {
         console.log(this.startDate);
         console.log(this.endDate);
 
-        console.log('yyy');
-
         if (this.selectedRoom) {
             console.log('zzz');
-            this.query(this.startDate, this.endDate, this.selectedRoom.externalRoomId);
+            this._query(this.startDate, this.endDate, this.selectedRoom.externalRoomId);
         }
     }
 
-    public query(startDate: Date, endDate: Date, roomExternalId: string): void {
-        console.log('query');
+    private _query(startDate: Date, endDate: Date, roomExternalId: string): void {
         this.loadingStatusClimateMeasurements.set(LoadingStatus.LOADING);
         this.loadingClimateMeasurementsError = '';
 
-        this._measurementService.query(startDate.toISOString(), endDate.toISOString(), roomExternalId).subscribe((result) => {
-            this.climateData = result;
-            this.updateGraph(result);
-            if (result.length <= 0) {
+        this._measurementService.query(startDate.toISOString(), endDate.toISOString(), roomExternalId).subscribe({
+            next: (result) => {
+                this.climateData = result;
+                this.updateGraph(result);
+                if (result.length <= 0) {
+                    this.loadingStatusClimateMeasurements.set(LoadingStatus.LOADING_ERROR);
+                    this.loadingClimateMeasurementsError = 'Keine Daten vorhanden';
+                } else {
+                    this.loadingStatusClimateMeasurements.set(LoadingStatus.LOADING_SUCCESS);
+                }
+            },
+            error: (error) => {
+                // todo: error handling
+                console.error('Error fetching climate data:', error);
                 this.loadingStatusClimateMeasurements.set(LoadingStatus.LOADING_ERROR);
-                this.loadingClimateMeasurementsError = 'Keine Daten vorhanden';
-            } else {
-                this.loadingStatusClimateMeasurements.set(LoadingStatus.LOADING_SUCCESS);
-            }
+                this.loadingClimateMeasurementsError = 'Fehler beim Laden der Daten';
+            },
+        });
+    }
+
+    private _subscribeToMeasurements(roomExternalId: string): void {
+        if (this.measurementSubscription) {
+            this.measurementSubscription.unsubscribe();
+        }
+
+        this.measurementSubscription = this._measurementService.subscribeToMeasurements(roomExternalId).subscribe({
+            next: (newMeasurement) => {
+                console.log('New measurement received:', newMeasurement);
+                // Hier können Sie die Logik implementieren, um die neuen Daten
+                // in this.climateData einzufügen und updateGraph aufzurufen
+                if (this.climateData) {
+                    this.climateData.push(newMeasurement);
+                    this.updateGraph(this.climateData);
+                }
+            },
+            error: (error) => {
+                console.error('Error in climate measurement subscription:', error);
+            },
         });
     }
 

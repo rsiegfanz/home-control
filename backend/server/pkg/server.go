@@ -5,20 +5,24 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/cors"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/configs"
 	graphqlHandlers "github.com/rsiegfanz/home-control/backend/server/pkg/graphql/handlers"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/graphql/resolvers"
 	restHandlers "github.com/rsiegfanz/home-control/backend/server/pkg/rest/handlers"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/rest/middleware"
+	rsredis "github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/redis"
 	"gorm.io/gorm"
 )
 
-func NewServer(serverConfig configs.ServerConfig, db *gorm.DB) *http.Server {
+func NewServer(serverConfig configs.ServerConfig, db *gorm.DB, redisConfig rsredis.Config) *http.Server {
 	router := mux.NewRouter()
 
+	redisClient := rsredis.InitClient(redisConfig)
+
 	registerRest(router, db)
-	registerGraphQl(router, db)
+	registerGraphQl(router, db, redisClient)
 	registerStaticContent(router)
 
 	router.Use(middleware.LoggingMiddleware)
@@ -48,8 +52,8 @@ func registerRest(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/rooms/{roomId}/measurements/latest", restHandlers.GetLatestMeasurementByRoomIdHandler)
 }
 
-func registerGraphQl(router *mux.Router, db *gorm.DB) {
-	queryResolver := &resolvers.QueryResolver{DB: db}
+func registerGraphQl(router *mux.Router, db *gorm.DB, redisClient *redis.Client) {
+	queryResolver := &resolvers.QueryResolver{DB: db, RedisClient: redisClient}
 	router.HandleFunc("/graphql", graphqlHandlers.NewGraphQLHandler(queryResolver)).Methods("POST")
 }
 

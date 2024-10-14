@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 
 	"github.com/graphql-go/graphql"
 	"github.com/rsiegfanz/home-control/backend/server/pkg/graphql/resolvers"
@@ -10,6 +13,12 @@ import (
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 func NewGraphQLHandler(queryResolver *resolvers.QueryResolver) http.HandlerFunc {
 	fields := graphql.Fields{
@@ -36,14 +45,44 @@ func NewGraphQLHandler(queryResolver *resolvers.QueryResolver) http.HandlerFunc 
 		},
 	}
 
+	subscriptionFields := graphql.Fields{
+		"climateMeasurementUpdates": &graphql.Field{
+			Type: schemas.ClimateMeasurementSchema,
+			Args: graphql.FieldConfigArgument{
+				"roomExternalId": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: queryResolver.SubscribeToClimateMeasurements,
+		},
+	}
+
 	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	rootSubscription := graphql.ObjectConfig{Name: "Subscription", Fields: subscriptionFields}
+
+	schemaConfig := graphql.SchemaConfig{
+		Query:        graphql.NewObject(rootQuery),
+		Subscription: graphql.NewObject(rootSubscription),
+	}
+
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
 		logging.Logger.Panic("invalid schema", zap.Error(err))
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		if websocket.IsWebSocketUpgrade(r) {
+			conn, err := upgrader.Upgrade(w, r, nil)
+			if err != nil {
+				logging.Logger.Error("WebSocket upgrade failed", zap.Error(err))
+				return
+			}
+			defer conn.Close()
+
+			HandleSubscription(conn, &schema, queryResolver)
+			return
+		}
+
 		var params struct {
 			Query         string                 `json:"query"`
 			OperationName string                 `json:"operationName"`
@@ -64,5 +103,48 @@ func NewGraphQLHandler(queryResolver *resolvers.QueryResolver) http.HandlerFunc 
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
+	}
+}
+
+func HandleSubscription(conn *websocket.Conn, schema *graphql.Schema, resolver *resolvers.QueryResolver) {
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+
+		var params struct {
+			Query string `json:"query"`
+		}
+		if err := json.Unmarshal(message, &params); err != nil {
+			continue
+		}
+
+		go func() {
+			result := graphql.Do(graphql.Params{
+				Schema:        *schema,
+				RequestString: params.Query,
+				Context:       context.Background(),
+			})
+
+			if result.HasErrors() {
+				conn.WriteJSON(map[string]interface{}{
+					"errors": result.Errors,
+				})
+				return
+			}
+
+			if data, ok := result.Data.(map[string]interface{}); ok {
+				if stream, ok := data["climateMeasurementUpdates"].(chan interface{}); ok {
+					for update := range stream {
+						conn.WriteJSON(map[string]interface{}{
+							"data": map[string]interface{}{
+								"climateMeasurementUpdates": update,
+							},
+						})
+					}
+				}
+			}
+		}()
 	}
 }

@@ -9,52 +9,71 @@ import gql from 'graphql-tag';
 import { IClimateMeasurementSchemaDto, IClimateMeasurementSchemaRootDto } from '../dtos/measurement.dto';
 import { IApiGraphQLResponseDto } from '../../../backend/dtos/api-graphql-response-dto.interface';
 
+const GET_CLIMATE_MEASUREMENTS = gql`
+    query GetClimateMeasurements($startDate: String!, $endDate: String!, $roomExternalId: String!) {
+        climateMeasurements(startDate: $startDate, endDate: $endDate, roomExternalId: $roomExternalId) {
+            recordedAt
+            roomExternalId
+            temperature
+            humidity
+        }
+    }
+`;
+
+const CLIMATE_MEASUREMENT_SUBSCRIPTION = gql`
+    subscription ClimateMeasurementUpdates($roomExternalId: String!) {
+        climateMeasurementUpdates(roomExternalId: $roomExternalId) {
+            recordedAt
+            roomExternalId
+            temperature
+            humidity
+        }
+    }
+`;
+
 @Injectable({
     providedIn: 'root',
 })
 export class MeasurementService extends BackendService<Measurement> {
     protected override subdirectory = 'rooms/{roomId}/measurements';
 
-    public constructor(protected apollo: Apollo) {
+    constructor(protected apollo: Apollo) {
         super();
     }
 
     public getLatestByExternalRoomId(externalRoomId: string): Observable<ApiResponse<Measurement>> {
-        let url = this.createUrl();
-        url = url.replace('{roomId}', externalRoomId);
-        url = url + '/latest';
-
+        const url = this.createUrl().replace('{roomId}', externalRoomId) + '/latest';
         return this.getSingle(url, mapDtoToModel);
     }
 
     public query(startDate: string, endDate: string, roomExternalId: string): Observable<Measurement[]> {
         return this.apollo
-            .watchQuery({
-                query: gql`
-                    query GetClimateMeasurements($startDate: String!, $endDate: String!, $roomExternalId: String!) {
-                        climateMeasurements(startDate: $startDate, endDate: $endDate, roomExternalId: $roomExternalId) {
-                            recordedAt
-                            roomExternalId
-                            temperature
-                            humidity
-                        }
-                    }
-                `,
-                variables: {
-                    startDate: startDate,
-                    endDate: endDate,
-                    roomExternalId: roomExternalId,
-                },
+            .watchQuery<IClimateMeasurementSchemaRootDto>({
+                query: GET_CLIMATE_MEASUREMENTS,
+                variables: { startDate, endDate, roomExternalId },
             })
             .valueChanges.pipe(
-                map((result: IApiGraphQLResponseDto) => {
-                    if (!result || !result.data) {
-                        // TODO: error handling/message
-                        console.log(`GraphQL Error: ${result}`);
+                map((result) => {
+                    if (!result.data) {
+                        throw new Error('No data returned from GraphQL query');
                     }
+                    return result.data.climateMeasurements.map(mapGraphlQLDtoToModel);
+                }),
+            );
+    }
 
-                    const dtos = (result.data as IClimateMeasurementSchemaRootDto).climateMeasurements;
-                    return dtos.map(mapGraphlQLDtoToModel);
+    public subscribeToMeasurements(roomExternalId: string): Observable<Measurement> {
+        return this.apollo
+            .subscribe<{ climateMeasurementUpdates: IClimateMeasurementSchemaDto }>({
+                query: CLIMATE_MEASUREMENT_SUBSCRIPTION,
+                variables: { roomExternalId },
+            })
+            .pipe(
+                map((result) => {
+                    if (!result.data) {
+                        throw new Error('No data returned from GraphQL subscription');
+                    }
+                    return mapGraphlQLDtoToModel(result.data.climateMeasurementUpdates);
                 }),
             );
     }

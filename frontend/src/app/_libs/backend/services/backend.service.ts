@@ -10,7 +10,7 @@ import { IApiResponseDto } from '..//dtos/api-response-dto.interface';
 export abstract class BackendService<TModel extends BaseModel> {
     protected http = inject(HttpClient);
 
-    protected baseUrl = environment.backendGoUrl;
+    protected baseUrl = `http://${environment.backendGoUrl}`; // todo
 
     protected abstract subdirectory: string;
 

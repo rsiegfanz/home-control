@@ -9,6 +9,7 @@ import (
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/kafka"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/redis"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 )
@@ -26,7 +27,7 @@ func main() {
 
 	logging.Logger.Info("Ingestor started")
 
-	dbConfig, kafkaConfig := loadConfigs()
+	dbConfig, kafkaConfig, redisConfig := loadConfigs()
 
 	db, err := postgres.InitDB(dbConfig)
 	if err != nil {
@@ -36,13 +37,13 @@ func main() {
 	rooms := []models.Room{}
 	db.Find(&rooms)
 
-	ingestClimateMeasurements(dbConfig, kafkaConfig)
+	ingestClimateMeasurements(dbConfig, kafkaConfig, redisConfig)
 
 	logging.Logger.Sugar().Infof("rooms", rooms)
 }
 
-func ingestClimateMeasurements(postgresConfig postgres.Config, kafkaConfig kafka.Config) {
-	ingestor := climateMeasurements.NewIngestor(postgresConfig, kafkaConfig)
+func ingestClimateMeasurements(postgresConfig postgres.Config, kafkaConfig kafka.Config, redisConfig redis.Config) {
+	ingestor := climateMeasurements.NewIngestor(postgresConfig, kafkaConfig, redisConfig)
 	defer ingestor.Close()
 
 	for {
@@ -52,14 +53,14 @@ func ingestClimateMeasurements(postgresConfig postgres.Config, kafkaConfig kafka
 	}
 }
 
-func loadConfigs() (postgres.Config, kafka.Config) {
+func loadConfigs() (postgres.Config, kafka.Config, redis.Config) {
 	if config.IsProd() {
 		return loadConfigsProd()
 	}
 	return loadConfigsDev()
 }
 
-func loadConfigsProd() (postgres.Config, kafka.Config) {
+func loadConfigsProd() (postgres.Config, kafka.Config, redis.Config) {
 	logging.Logger.Info("Loading PROD environment")
 
 	postgresConfig, err := config.LoadConfig[postgres.Config]()
@@ -72,15 +73,17 @@ func loadConfigsProd() (postgres.Config, kafka.Config) {
 		logging.Logger.Fatal("Error loading kafka config", zap.Error(err))
 	}
 
-	// redisConfig := redis.Config{}
-	// redisConfig.Host = "localhost:6379"
+	redisConfig, err := config.LoadConfig[redis.Config]()
+	if err != nil {
+		logging.Logger.Fatal("Error loading redis config", zap.Error(err))
+	}
 
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig, kafkaConfig
+	return postgresConfig, kafkaConfig, redisConfig
 }
 
-func loadConfigsDev() (postgres.Config, kafka.Config) {
+func loadConfigsDev() (postgres.Config, kafka.Config, redis.Config) {
 	logging.Logger.Warn("Loading DEV environment")
 
 	postgresConfig := postgres.Config{}
@@ -93,10 +96,10 @@ func loadConfigsDev() (postgres.Config, kafka.Config) {
 	kafkaConfig := kafka.Config{}
 	kafkaConfig.Host = "localhost:9092"
 
-	// redisConfig := redis.Config{}
-	// redisConfig.Host = "localhost:6379"
+	redisConfig := redis.Config{}
+	redisConfig.Host = "localhost:6379"
 
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig, kafkaConfig
+	return postgresConfig, kafkaConfig, redisConfig
 }

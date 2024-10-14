@@ -12,6 +12,7 @@ import (
 	"github.com/rsiegfanz/home-control/backend/server/pkg/configs"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/config"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/redis"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
 	"go.uber.org/zap"
 )
@@ -29,13 +30,13 @@ func main() {
 
 	logging.Logger.Info("Server started")
 
-	dbConfig, serverConfig := loadConfigs()
+	dbConfig, serverConfig, redisConfig := loadConfigs()
 	db, err := postgres.InitDB(dbConfig)
 	if err != nil {
 		logging.Logger.Fatal("Error opening database", zap.Error(err))
 	}
 
-	server := NewServer(serverConfig, db)
+	server := NewServer(serverConfig, db, redisConfig)
 
 	go func() {
 		log.Println("Start")
@@ -63,14 +64,14 @@ func main() {
 	logging.Logger.Info("Server stopped")
 }
 
-func loadConfigs() (postgres.Config, configs.ServerConfig) {
+func loadConfigs() (postgres.Config, configs.ServerConfig, redis.Config) {
 	if config.IsProd() {
 		return loadConfigsProd()
 	}
 	return loadConfigsDev()
 }
 
-func loadConfigsProd() (postgres.Config, configs.ServerConfig) {
+func loadConfigsProd() (postgres.Config, configs.ServerConfig, redis.Config) {
 	logging.Logger.Info("Loading PROD environment")
 
 	postgresConfig, err := config.LoadConfig[postgres.Config]()
@@ -83,12 +84,17 @@ func loadConfigsProd() (postgres.Config, configs.ServerConfig) {
 		logging.Logger.Fatal("Error loading config", zap.Error(err))
 	}
 
+	redisConfig := redis.Config{}
+	if err != nil {
+		logging.Logger.Fatal("Error loading redis config", zap.Error(err))
+	}
+
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig, serverConfig
+	return postgresConfig, serverConfig, redisConfig
 }
 
-func loadConfigsDev() (postgres.Config, configs.ServerConfig) {
+func loadConfigsDev() (postgres.Config, configs.ServerConfig, redis.Config) {
 	logging.Logger.Warn("Loading DEV environment")
 
 	postgresConfig := postgres.Config{}
@@ -101,7 +107,10 @@ func loadConfigsDev() (postgres.Config, configs.ServerConfig) {
 	serverConfig := configs.ServerConfig{}
 	serverConfig.Adress = "0.0.0.0:8080"
 
+	redisConfig := redis.Config{}
+	redisConfig.Host = "localhost:6379"
+
 	logging.Logger.Debug("Configs loaded")
 
-	return postgresConfig, serverConfig
+	return postgresConfig, serverConfig, redisConfig
 }

@@ -1,7 +1,7 @@
 services:
   #postgres:
   #  image: postgres:16.4
-  #  container_name: postgres_home_control
+  #  container_name: postgres-home-control
   #  environment:
   #    POSTGRES_DB: ${POSTGRES_DB:-home_control_db}
   #    POSTGRES_USER: ${POSTGRES_USER:-home_control_user}
@@ -15,7 +15,7 @@ services:
 
   timescaledb:
     image: timescale/timescaledb:latest-pg16
-    container_name: timescaledb
+    container_name: timescaledb-home-control
     ports:
       - "5432:5432"
     environment:
@@ -36,7 +36,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin_home_control
+    container_name: pgadmin-home-control
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@home-control.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
@@ -49,7 +49,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.1
-    container_name: kafka
+    container_name: kafka-home-control
     ports:
       - "9092:9092"
       - "9093:9093"
@@ -99,9 +99,26 @@ services:
     networks:
       - home_control_network
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis-home-control
+    ports:
+      - "6379:6379"
+    volumes:
+      - d:/dev/docker/share/home-control/redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - home_control_network
+
   # loki:
   #   image: grafana/loki:2.8.2
-  #   container_name: loki
+  #   container_name: loki-home-control
   #   ports:
   #     - "3100:3100"
   #   command: -config.file=/etc/loki/local-config.yaml
@@ -112,7 +129,7 @@ services:
 
   # promtail:
   #   image: grafana/promtail:2.8.2
-  #   container_name: promtail
+  #   container_name: promtail-home-control
   #   volumes:
   #     - d:/dev/docker/share/home-control/promtail:/var/log
   #     - ./promtail-config.yaml:/etc/promtail/config.yaml
@@ -122,7 +139,7 @@ services:
 
   # grafana:
   #   image: grafana/grafana:latest
-  #   container_name: grafana
+  #   container_name: grafana-home-control
   #   ports:
   #     - "3000:3000"
   #   environment:
@@ -162,12 +179,17 @@ services:
       POSTGRES_USER: home_control_user
       POSTGRES_PASSWORD: home_control_password
       KAFKA_HOST: kafka:29092
+      REDIS_HOST: redis:6379
+      REDIS_PASSWORD: x
+      REDIS_DB: 0
     volumes:
       - d:/dev/docker/share/home-control/promtail:/var/log
     depends_on:
       #kafka:
       #  condition: service_healthy
       timescaledb:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - home_control_network
@@ -202,12 +224,17 @@ services:
   #     POSTGRES_USER: home_control_user
   #     POSTGRES_PASSWORD: home_control_password
   #     ADDRESS: 0.0.0.0:8080
+  #     REDIS_HOST: redis:6379
+  #     REDIS_PASSWORD: x
+  #     REDIS_DB: 0
   #   ports:
   #     - "8080:8080"
   #   volumes:
   #     - d:/dev/docker/share/home-control/promtail:/var/log
   #   depends_on:
   #     timescaledb:
+  #       condition: service_healthy
+  #     redis:
   #       condition: service_healthy
   #   networks:
   #     - home_control_network
