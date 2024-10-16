@@ -15,14 +15,7 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(routes),
         provideAnimationsAsync(),
-        provideHttpClient(
-            withInterceptors([
-                (req, next) => {
-                    console.log('Intercepted URL:', req.url);
-                    return next(req);
-                },
-            ]),
-        ),
+        provideHttpClient(),
         provideApollo(() => {
             const httpLink = inject(HttpLink);
 
@@ -35,8 +28,16 @@ export const appConfig: ApplicationConfig = {
             const wsClient = createClient({
                 url: wsUrl,
                 connectionParams: {},
+                on: {
+                    connected: () => console.log('WebSocket connected'),
+                    error: (error) => console.error('WebSocket error:', error),
+                    closed: () => console.log('WebSocket connection closed'),
+                },
             });
             const ws = new GraphQLWsLink(wsClient);
+
+            ws.client.on('connected', () => console.log('connected'));
+            ws.client.on('error', (error) => console.log('error', error));
 
             const link = split(
                 ({ query }) => {

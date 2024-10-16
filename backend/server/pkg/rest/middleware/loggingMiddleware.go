@@ -9,7 +9,7 @@ import (
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logging.Logger.Info("New request", zap.String("RequestURI", r.RequestURI))
+		logging.Logger.Debug("New request", zap.String("RequestURI", r.RequestURI))
 		next.ServeHTTP(w, r)
 	})
 }

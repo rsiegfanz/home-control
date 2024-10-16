@@ -54,7 +54,7 @@ func registerRest(router *mux.Router, db *gorm.DB) {
 
 func registerGraphQl(router *mux.Router, db *gorm.DB, redisClient *redis.Client) {
 	queryResolver := &resolvers.QueryResolver{DB: db, RedisClient: redisClient}
-	router.HandleFunc("/graphql", graphqlHandlers.NewGraphQLHandler(queryResolver)).Methods("POST")
+	router.HandleFunc("/graphql", graphqlHandlers.NewGraphQLHandler(queryResolver)).Methods("GET", "POST")
 }
 
 func registerStaticContent(router *mux.Router) {

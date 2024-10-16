@@ -72,7 +72,6 @@ export class ClimateMeasurementsHomeComponent implements OnInit, OnDestroy {
     }
 
     public onDateChange(): void {
-        console.log('datechange');
         if (this.startDate > this.endDate) {
             const temp = this.startDate;
             this.startDate = this.endDate;
@@ -83,7 +82,6 @@ export class ClimateMeasurementsHomeComponent implements OnInit, OnDestroy {
         console.log(this.endDate);
 
         if (this.selectedRoom) {
-            console.log('zzz');
             this._query(this.startDate, this.endDate, this.selectedRoom.externalRoomId);
         }
     }
@@ -120,8 +118,6 @@ export class ClimateMeasurementsHomeComponent implements OnInit, OnDestroy {
         this.measurementSubscription = this._measurementService.subscribeToMeasurements(roomExternalId).subscribe({
             next: (newMeasurement) => {
                 console.log('New measurement received:', newMeasurement);
-                // Hier können Sie die Logik implementieren, um die neuen Daten
-                // in this.climateData einzufügen und updateGraph aufzurufen
                 if (this.climateData) {
                     this.climateData.push(newMeasurement);
                     this.updateGraph(this.climateData);

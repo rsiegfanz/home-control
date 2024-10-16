@@ -24,3 +24,13 @@ var ClimateMeasurementSchema = graphql.NewObject(
 		},
 	},
 )
+
+var ClimateMeasurementSubscription = &graphql.Field{
+	Type: ClimateMeasurementSchema,
+	Args: graphql.FieldConfigArgument{
+		"roomExternalId": &graphql.ArgumentConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+	Resolve: nil,
+}

@@ -8,6 +8,8 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
+	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
+	"go.uber.org/zap"
 )
 
 func (r *QueryResolver) GetClimateMeasurements(ctx context.Context, startDate string, endDate string, roomExternalId string) ([]*models.ClimateMeasurement, error) {
@@ -36,26 +38,26 @@ func (r *QueryResolver) SubscribeToClimateMeasurements(params graphql.ResolvePar
 		return nil, fmt.Errorf("invalid roomExternalId")
 	}
 
-	measurements := make(chan interface{})
-	go func() {
-		defer close(measurements)
+	logging.Logger.Info("Starting subscription for room", zap.String("roomExternalId", roomExternalId))
+
+	return func() (interface{}, error) {
 		pubsub := r.RedisClient.Subscribe(params.Context, fmt.Sprintf("updates:%s", roomExternalId))
 		defer pubsub.Close()
 
-		for {
-			select {
-			case <-params.Context.Done():
-				return
-			case msg := <-pubsub.Channel():
-				var measurement models.ClimateMeasurement
-				if err := json.Unmarshal([]byte(msg.Payload), &measurement); err != nil {
-					// Log the error, but continue
-					continue
-				}
-				measurements <- measurement
-			}
+		msg, err := pubsub.ReceiveMessage(params.Context)
+		if err != nil {
+			logging.Logger.Error("Error receiving message from Redis", zap.Error(err))
+			return nil, err
 		}
-	}()
 
-	return measurements, nil
+		var measurement models.ClimateMeasurement
+		if err := json.Unmarshal([]byte(msg.Payload), &measurement); err != nil {
+			logging.Logger.Error("Error unmarshalling measurement", zap.Error(err))
+			return nil, err
+		}
+
+		logging.Logger.Debug("Received new measurement from Redis", zap.Any("measurement", measurement))
+
+		return &measurement, nil
+	}, nil
 }
