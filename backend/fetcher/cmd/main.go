@@ -34,7 +34,7 @@ func main() {
 	case "climate_history":
 		fetchClimateMeasurementsAll(kafkaConfig, fetcherConfig)
 	default:
-		logging.Logger.Error("invalid or missing modus %s", zap.String("modus", fetcherConfig.Modus))
+		logging.Logger.Error("invalid or missing modus", zap.String("modus", fetcherConfig.Modus))
 	}
 
 	logging.Logger.Info("Fetcher stopped")
