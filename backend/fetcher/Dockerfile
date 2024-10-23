@@ -10,8 +10,10 @@ ENV GO111MODULE=on
 COPY ./backend/fetcher/go.mod ./backend/fetcher/go.sum ./fetcher/
 COPY ./backend/sharedlib/go.mod ./backend/sharedlib/go.sum* ./sharedlib/
 
+WORKDIR /app/backend/fetcher
 RUN go mod download
 
+WORKDIR /app
 COPY ./backend/fetcher/cmd ./fetcher/cmd
 COPY ./backend/fetcher/pkg ./fetcher/pkg
 
