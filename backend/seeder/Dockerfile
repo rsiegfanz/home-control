@@ -10,8 +10,10 @@ ENV GO111MODULE=on
 COPY ./backend/seeder/go.mod ./backend/seeder/go.sum ./seeder/
 COPY ./backend/sharedlib/go.mod ./backend/sharedlib/go.sum* ./sharedlib/
 
+WORKDIR /app/seeder
 RUN go mod download
 
+WORKDIR /app
 COPY ./backend/seeder/cmd ./seeder/cmd
 COPY ./backend/seeder/pkg ./seeder/pkg
 

@@ -10,8 +10,10 @@ ENV GO111MODULE=on
 COPY ./backend/ingestor/go.mod ./backend/ingestor/go.sum ./ingestor/
 COPY ./backend/sharedlib/go.mod ./backend/sharedlib/go.sum* ./sharedlib/
 
+WORKDIR /app/ingestor
 RUN go mod download
 
+WORKDIR /app
 COPY ./backend/ingestor/cmd ./ingestor/cmd
 COPY ./backend/ingestor/pkg ./ingestor/pkg
 

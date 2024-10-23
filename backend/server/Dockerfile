@@ -10,8 +10,10 @@ ENV GO111MODULE=on
 COPY ./backend/server/go.mod ./backend/server/go.sum ./server/
 COPY ./backend/sharedlib/go.mod ./backend/sharedlib/go.sum* ./sharedlib/
 
+WORKDIR /app/server
 RUN go mod download
 
+WORKDIR /app
 COPY ./backend/server/cmd ./server/cmd
 COPY ./backend/server/pkg ./server/pkg
 
