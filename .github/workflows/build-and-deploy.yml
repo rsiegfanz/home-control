@@ -143,6 +143,7 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Cache Trivy vulnerability database
+        if: success()
         uses: actions/cache@v2
         with:
           path: ~/.cache/trivy
@@ -151,6 +152,7 @@ jobs:
             ${{ runner.os }}-trivy-
 
       - name: Install Trivy
+        if: success()
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
@@ -158,12 +160,49 @@ jobs:
           sudo apt-get update
           sudo apt-get install trivy
 
+      - name: Update Trivy DB
+        run: |
+          trivy --cache-dir ~/.cache/trivy image --download-db-only
+        continue-on-error: true
+
       - name: Scan Docker Images
         run: |
+          scan_with_retry() {
+            local service=$1
+            local max_attempts=5
+            local attempt=1
+            local wait_time=10
+
+            while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts: Scanning $service..."
+              if trivy image --cache-dir ~/.cache/trivy --no-progress rsiegfanz/home-control-$service:latest; then
+                echo "Scan successful for $service"
+                return 0
+              else
+                echo "Scan failed for $service. Retrying in $wait_time seconds..."
+                sleep $wait_time
+                wait_time=$((wait_time * 2))
+                attempt=$((attempt + 1))
+              fi
+            done
+
+            echo "Failed to scan $service after $max_attempts attempts"
+            return 1
+          }
+
+          failed_scans=()
           while read service; do
-            echo "Scanning $service..."
-            trivy image --cache-dir ~/.cache/trivy --no-progress rsiegfanz/home-control-$service:latest
+            if ! scan_with_retry $service; then
+              failed_scans+=($service)
+            fi
           done < services_to_build.txt
+
+          if [ ${#failed_scans[@]} -ne 0 ]; then
+            echo "The following scans failed:"
+            printf '%s\n' "${failed_scans[@]}"
+            exit 1
+          fi
+        shell: bash
 
       - name: Cleanup
         if: always()
