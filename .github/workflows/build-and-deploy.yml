@@ -142,8 +142,15 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
+      - name: Cache Trivy vulnerability database
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-trivy-
+
       - name: Install Trivy
-        if: success()
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
@@ -152,11 +159,10 @@ jobs:
           sudo apt-get install trivy
 
       - name: Scan Docker Images
-        if: success()
         run: |
           while read service; do
             echo "Scanning $service..."
-            trivy image rsiegfanz/home-control-$service:latest
+            trivy image --cache-dir ~/.cache/trivy --no-progress rsiegfanz/home-control-$service:latest
           done < services_to_build.txt
 
       - name: Cleanup
