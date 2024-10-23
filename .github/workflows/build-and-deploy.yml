@@ -137,11 +137,13 @@ jobs:
           echo "All builds completed successfully"
 
       - name: Move cache
+        if: success()
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Install Trivy
+        if: success()
         run: |
           sudo apt-get install wget apt-transport-https gnupg lsb-release
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
@@ -150,6 +152,7 @@ jobs:
           sudo apt-get install trivy
 
       - name: Scan Docker Images
+        if: success()
         run: |
           while read service; do
             echo "Scanning $service..."
