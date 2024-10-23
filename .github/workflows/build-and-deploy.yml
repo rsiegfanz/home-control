@@ -3,12 +3,12 @@ name: Build and Push Docker Images
 on:
   push:
     branches:
-      - master
-      - production
+      - dev
+      - prod
   pull_request:
     branches:
-      - master
-      - production
+      - dev
+      - prod
     paths:
       - "backend/**"
       - "frontend/**"
@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Initialize changes.txt
+        run: echo "" > changes.txt
+        shell: bash
+
+      - name: Initialize services_to_build.txt
+        run: echo "" > services_to_build.txt
+        shell: bash
 
       - name: Get Changes
         run: |
@@ -37,10 +45,10 @@ jobs:
               git diff --name-only HEAD^ HEAD > changes.txt
             else
               echo "No previous commit found. Building all images."
-              echo "fetcher" > changes.txt
-              echo "ingestor" >> changes.txt
-              echo "seeder" >> changes.txt
-              echo "server" >> changes.txt
+              echo "backend/fetcher" > changes.txt
+              echo "backend/ingestor" >> changes.txt
+              echo "backend/seeder" >> changes.txt
+              echo "backend/server" >> changes.txt
             fi
           fi
 
@@ -64,21 +72,87 @@ jobs:
             echo "Server or frontend has changed."
             echo "server" >> services_to_build.txt
           fi
-
+          echo "Services to build: $(cat services_to_build.txt)" # Ausgeben, welche Services gebaut werden
         shell: bash
+
+      - name: Check for Services to Build
+        run: |
+          if [ ! -s services_to_build.txt ]; then
+            echo "No services to build. Exiting."
+            exit 0
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build and Push Docker Images
         if: success()
-        env:
-          DOCKER_REGISTRY: docker.io
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: |
           while read service; do
             echo "Building and pushing $service..."
-            docker build -t rsiegfanz/home-control-$service -f ./backend/$service/Dockerfile .
-            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
-            docker push rsiegfanz/home-control-$service
+            docker buildx build \
+              --cache-from type=local,src=/tmp/.buildx-cache \
+              --cache-to type=local,dest=/tmp/.buildx-cache-new \
+              --tag rsiegfanz/home-control-$service:${{ github.sha }} \
+              --tag rsiegfanz/home-control-$service:latest \
+              --file ./backend/$service/Dockerfile \
+              --push \
+              .
+              echo "Finished building and pushing $service"
+            done < services_to_build.txt
+            echo "All builds completed successfully"
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+      - name: Scan Docker Images
+        run: |
+          while read service; do
+            echo "Scanning $service..."
+            trivy image rsiegfanz/home-control-$service:latest
           done < services_to_build.txt
 
-        shell: bash
+      - name: Cleanup
+        if: always()
+        run: rm -f changes.txt services_to_build.txt
+
+      - name: Send Telegram Notification
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          BUILD_STATUS="Success"
+          if [ "${{ job.status }}" != "success" ]; then
+            BUILD_STATUS="Failure"
+          fi
+          MESSAGE="Build Status: $BUILD_STATUS%0A"
+          MESSAGE+="Repository: ${{ github.repository }}%0A"
+          MESSAGE+="Branch: ${{ github.ref_name }}%0A"
+          MESSAGE+="Commit: ${{ github.sha }}%0A"
+          MESSAGE+="Build URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="$MESSAGE"
