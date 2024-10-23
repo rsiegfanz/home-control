@@ -175,7 +175,7 @@ jobs:
 
             while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts: Scanning $service..."
-              if trivy image --cache-dir ~/.cache/trivy --no-progress rsiegfanz/home-control-$service:latest; then
+              if trivy image --cache-dir ~/.cache/trivy --no-progress "rsiegfanz/home-control-${service}:latest"; then
                 echo "Scan successful for $service"
                 return 0
               else
@@ -191,9 +191,11 @@ jobs:
           }
 
           failed_scans=()
-          while read service; do
-            if ! scan_with_retry $service; then
-              failed_scans+=($service)
+          while IFS= read -r service || [[ -n "$service" ]]; do
+            if [ -n "$service" ]; then
+              if ! scan_with_retry "$service"; then
+                failed_scans+=("$service")
+              fi
             fi
           done < services_to_build.txt
 
