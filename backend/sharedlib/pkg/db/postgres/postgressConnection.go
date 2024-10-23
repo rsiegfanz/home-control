@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/db/postgres/models"
 	"github.com/rsiegfanz/home-control/backend/sharedlib/pkg/logging"
@@ -18,7 +17,7 @@ func InitDB(config Config) (*gorm.DB, error) {
 	)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		logging.Logger.Fatal("Failed to connect to the database:", zap.Error(err))
 		return db, err
 	}
 
@@ -34,8 +33,8 @@ func convertToHypertable(db *gorm.DB, table string, column string) {
 	db.Raw("SELECT COUNT(1) FROM timescaledb_information.hypertables WHERE hypertable_name = ?", table).Scan(&result)
 
 	if result == 0 {
-		logging.Logger.Info("Converting table %s into hypertable", zap.String("table", table))
+		logging.Logger.Info("Converting table into hypertable", zap.String("table", table))
 		db.Exec("SELECT create_hypertable(?, ?)", table, column)
 	}
-	logging.Logger.Debug("Table %s already converted into hypertable", zap.String("table", table))
+	logging.Logger.Debug("Table already converted into hypertable", zap.String("table", table))
 }
