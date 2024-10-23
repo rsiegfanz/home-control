@@ -162,8 +162,32 @@ jobs:
 
       - name: Update Trivy DB
         run: |
-          trivy --cache-dir ~/.cache/trivy image --download-db-only
-        continue-on-error: true
+          update_db_with_retry() {
+            local max_attempts=5
+            local attempt=1
+            local wait_time=30
+
+            while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts: Updating Trivy DB..."
+              if trivy --cache-dir ~/.cache/trivy image --download-db-only; then
+                echo "Trivy DB update successful"
+                return 0
+              else
+                echo "Trivy DB update failed. Retrying in $wait_time seconds..."
+                sleep $wait_time
+                wait_time=$((wait_time * 2))
+                attempt=$((attempt + 1))
+              fi
+            done
+
+            echo "Failed to update Trivy DB after $max_attempts attempts"
+            return 1
+          }
+
+          if ! update_db_with_retry; then
+            echo "Warning: Trivy DB update failed. Proceeding with existing DB."
+          fi
+        shell: bash
 
       - name: Scan Docker Images
         run: |
