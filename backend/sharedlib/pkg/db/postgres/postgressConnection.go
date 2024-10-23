@@ -36,5 +36,5 @@ func convertToHypertable(db *gorm.DB, table string, column string) {
 		logging.Logger.Info("Converting table into hypertable", zap.String("table", table))
 		db.Exec("SELECT create_hypertable(?, ?)", table, column)
 	}
-	logging.Logger.Debug("Table already converted into hypertable !!!", zap.String("table", table))
+	logging.Logger.Debug("Table already converted into hypertable", zap.String("table", table))
 }
