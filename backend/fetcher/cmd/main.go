@@ -20,7 +20,7 @@ func main() {
 	}
 
 	if err := logging.InitLogger("info", "fetcher", logPath); err != nil {
-		log.Fatalf("Error initializing logger: %v !!", err)
+		log.Fatalf("Error initializing logger: %v", err)
 	}
 	defer logging.SyncLogger()
 
