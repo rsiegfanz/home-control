@@ -52,10 +52,20 @@ jobs:
             fi
           fi
 
+          echo "Changes detected:"
+          cat changes.txt
+
         shell: bash
 
       - name: Read Changes
         run: |
+          if grep -q "sharedlib" changes.txt; then
+            echo "Shared library has changed. Building all services."
+            echo "fetcher" >> services_to_build.txt
+            echo "ingestor" >> services_to_build.txt
+            echo "seeder" >> services_to_build.txt
+            echo "server" >> services_to_build.txt
+          else
           if grep -q "backend/fetcher" changes.txt; then
             echo "Fetcher has changed."
             echo "fetcher" >> services_to_build.txt
@@ -72,7 +82,7 @@ jobs:
             echo "Server or frontend has changed."
             echo "server" >> services_to_build.txt
           fi
-          echo "Services to build: $(cat services_to_build.txt)" # Ausgeben, welche Services gebaut werden
+          echo "Services to build: $(cat services_to_build.txt)"
         shell: bash
 
       - name: Check for Services to Build
