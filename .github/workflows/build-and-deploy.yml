@@ -66,21 +66,22 @@ jobs:
             echo "seeder" >> services_to_build.txt
             echo "server" >> services_to_build.txt
           else
-          if grep -q "backend/fetcher" changes.txt; then
-            echo "Fetcher has changed."
-            echo "fetcher" >> services_to_build.txt
-          fi
-          if grep -q "backend/ingestor" changes.txt; then
-            echo "Ingestor has changed."
-            echo "ingestor" >> services_to_build.txt
-          fi
-          if grep -q "backend/seeder" changes.txt; then
-            echo "Seeder has changed."
-            echo "seeder" >> services_to_build.txt
-          fi
-          if grep -q "backend/server" changes.txt || grep -q "frontend" changes.txt; then
-            echo "Server or frontend has changed."
-            echo "server" >> services_to_build.txt
+            if grep -q "backend/fetcher" changes.txt; then
+              echo "Fetcher has changed."
+              echo "fetcher" >> services_to_build.txt
+            fi
+            if grep -q "backend/ingestor" changes.txt; then
+              echo "Ingestor has changed."
+              echo "ingestor" >> services_to_build.txt
+            fi
+            if grep -q "backend/seeder" changes.txt; then
+              echo "Seeder has changed."
+              echo "seeder" >> services_to_build.txt
+            fi
+            if grep -q "backend/server" changes.txt || grep -q "frontend" changes.txt; then
+              echo "Server or frontend has changed."
+              echo "server" >> services_to_build.txt
+            fi
           fi
           echo "Services to build: $(cat services_to_build.txt)"
         shell: bash
