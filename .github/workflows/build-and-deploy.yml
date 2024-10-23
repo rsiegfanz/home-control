@@ -1,68 +1,81 @@
-name: CI/CD Pipeline
+name: Build and Push Docker Images
 
 on:
   push:
     branches:
       - master
-      - dev
-    paths:
-      - "backend/**"
-      - "frontend/**"
+      - production
+  pull_request:
+    branches:
+      - master
+      - production
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      DOCKER_REGISTRY: docker.io
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub using token
-        run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Determine changed services
-        id: vars
+      - name: Get Changes
         run: |
-          SHARED_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'backend/sharedlib/*' | wc -l)
-          FETCHER_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'backend/fetcher/*' | wc -l)
-          INGESTOR_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'backend/ingestor/*' | wc -l)
-          SEEDER_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'backend/seeder/*' | wc -l)
-          SERVER_CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E 'backend/server/*|frontend/*' | wc -l)
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            echo "This is a shallow clone. Fetching full history..."
+            git fetch --unshallow
+          fi
 
-          echo "sharedlib_changed=$SHARED_CHANGED" >> $GITHUB_ENV
-          echo "fetcher_changed=$FETCHER_CHANGED" >> $GITHUB_ENV
-          echo "ingestor_changed=$INGESTOR_CHANGED" >> $GITHUB_ENV
-          echo "seeder_changed=$SEEDER_CHANGED" >> $GITHUB_ENV
-          echo "server_changed=$SERVER_CHANGED" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Checking changes for the PR..."
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changes.txt
+          else
+            echo "Checking changes since the last commit..."
+            if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+              git diff --name-only HEAD^ HEAD > changes.txt
+            else
+              echo "No previous commit found. Building all images."
+              echo "fetcher" > changes.txt
+              echo "ingestor" >> changes.txt
+              echo "seeder" >> changes.txt
+              echo "server" >> changes.txt
+            fi
+          fi
 
-      - name: Build and push Docker images
-        if: env.sharedlib_changed == '1' || env.fetcher_changed == '1'
+        shell: bash
+
+      - name: Read Changes
         run: |
-          docker build -t rsiegfanz/home-control-fetcher ./backend/fetcher
-          docker push rsiegfanz/home-control-fetcher
+          if grep -q "backend/fetcher" changes.txt; then
+            echo "Fetcher has changed."
+            echo "fetcher" >> services_to_build.txt
+          fi
+          if grep -q "backend/ingestor" changes.txt; then
+            echo "Ingestor has changed."
+            echo "ingestor" >> services_to_build.txt
+          fi
+          if grep -q "backend/seeder" changes.txt; then
+            echo "Seeder has changed."
+            echo "seeder" >> services_to_build.txt
+          fi
+          if grep -q "backend/server" changes.txt || grep -q "frontend" changes.txt; then
+            echo "Server or frontend has changed."
+            echo "server" >> services_to_build.txt
+          fi
 
-      - name: Build and push Docker images
-        if: env.sharedlib_changed == '1' || env.ingestor_changed == '1'
-        run: |
-          docker build -t rsiegfanz/home-control-ingestor ./backend/ingestor
-          docker push rsiegfanz/home-control-ingestor
+        shell: bash
 
-      - name: Build and push Docker images
-        if: env.sharedlib_changed == '1' || env.seeder_changed == '1'
+      - name: Build and Push Docker Images
+        if: success()
+        env:
+          DOCKER_REGISTRY: docker.io
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: |
-          docker build -t rsiegfanz/home-control-seeder ./backend/seeder
-          docker push rsiegfanz/home-control-seeder
+          while read service; do
+            echo "Building and pushing $service..."
+            docker build -t rsiegfanz/home-control-$service -f ./backend/$service/Dockerfile .
+            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            docker push rsiegfanz/home-control-$service
+          done < services_to_build.txt
 
-      - name: Build and push Docker images
-        if: env.sharedlib_changed == '1' || env.server_changed == '1'
-        run: |
-          docker build -t rsiegfanz/home-control-server ./backend/server
-          docker push rsiegfanz/home-control-server
+        shell: bash
