@@ -15,7 +15,7 @@ RUN go mod download
 COPY ./backend/fetcher/cmd ./fetcher/cmd
 COPY ./backend/fetcher/pkg ./fetcher/pkg
 
-COPY ./backend/sharedlib/internal ./sharedlib/internal
+# COPY ./backend/sharedlib/internal ./sharedlib/internal
 COPY ./backend/sharedlib/pkg ./sharedlib/pkg
 
 WORKDIR /app/fetcher

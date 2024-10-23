@@ -15,7 +15,7 @@ RUN go mod download
 COPY ./backend/ingestor/cmd ./ingestor/cmd
 COPY ./backend/ingestor/pkg ./ingestor/pkg
 
-COPY ./backend/sharedlib/internal ./sharedlib/internal
+# COPY ./backend/sharedlib/internal ./sharedlib/internal
 COPY ./backend/sharedlib/pkg ./sharedlib/pkg
 
 WORKDIR /app/ingestor

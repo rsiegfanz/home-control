@@ -15,7 +15,7 @@ RUN go mod download
 COPY ./backend/server/cmd ./server/cmd
 COPY ./backend/server/pkg ./server/pkg
 
-COPY ./backend/sharedlib/internal ./sharedlib/internal
+# COPY ./backend/sharedlib/internal ./sharedlib/internal
 COPY ./backend/sharedlib/pkg ./sharedlib/pkg
 
 WORKDIR /app/server

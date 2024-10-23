@@ -15,7 +15,7 @@ RUN go mod download
 COPY ./backend/seeder/cmd ./seeder/cmd
 COPY ./backend/seeder/pkg ./seeder/pkg
 
-COPY ./backend/sharedlib/internal ./sharedlib/internal
+# COPY ./backend/sharedlib/internal ./sharedlib/internal
 COPY ./backend/sharedlib/pkg ./sharedlib/pkg
 
 WORKDIR /app/seeder
